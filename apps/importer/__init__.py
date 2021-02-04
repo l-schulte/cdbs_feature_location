@@ -4,7 +4,7 @@ if not os.path.isdir('repos'):
     os.mkdir('repos')
 WORKDIR = os.getcwd()
 
-REPO = {''}
+REPO = {'title': 'JabRef', 'url': 'https://github.com/JabRef/jabref.git'}
 
 
 def b2s(byte):
