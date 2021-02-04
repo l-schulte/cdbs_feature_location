@@ -1,98 +1,95 @@
 import os
 import subprocess
-import datetime
 
-from __init__ import db_log, b2s
-from git import workdir
+from __init__ import b2s, REPO, WORKDIR
 
 
-class GitCli:
+def clone():
+    """Clone the repository this instance is assigned to.
 
-    def __init__(self, repo):
-        self.repo = repo
+    """
 
-    def clone(self):
-        """Clone the repository this instance is assigned to.
+    os.chdir('repos')
 
-        """
+    command = 'git clone {}'.format(REPO['url'])
+    _ = subprocess.run(command, capture_output=True, shell=True)
 
-        os.chdir('repos')
+    os.chdir(WORKDIR)
 
-        command = 'git clone {}'.format(self.repo['url'])
-        res = subprocess.run(command, capture_output=True, shell=True)
 
-        db_log.insert_one({'text': command,
-                           'time': datetime.datetime.now(),
-                           'data': {
-                               'repo': self.repo['_id'],
-                               'error': b2s(res.stderr),
-                               'output': b2s(res.stdout)
-                           }})
+def checkout(commit_id):
+    """Checkout a specific commit of the repository this instance is assigned to.
 
-        os.chdir(workdir)
+    """
 
-    def checkout(self, commit_id):
-        """Checkout a specific commit of the repository this instance is assigned to.
+    os.chdir('repos/{}'.format(REPO['title']))
 
-        """
+    command = 'git checkout {}'.format(commit_id)
+    res = subprocess.run(command, capture_output=True, shell=True)
 
-        os.chdir('repos/{}'.format(self.repo['title']))
+    os.chdir(WORKDIR)
 
-        command = 'git checkout {}'.format(commit_id)
-        res = subprocess.run(command, capture_output=True, shell=True)
+    return res
 
-        os.chdir(workdir)
 
-        return res
+def diff(commit_id, steps_back, parameters=[]):
+    """Performs a diff operation on two versions of the repository
 
-    def pull(self):
-        """Pull all branches from the repository this instance is assigned to.
+    """
 
-        """
+    os.chdir('repos/{}'.format(REPO['title']))
 
-        os.chdir('repos/{}'.format(self.repo['title']))
+    parameters = ' '.join(parameters)
+    command = 'git diff {}~{} {}'.format(commit_id, steps_back, parameters)
+    res = subprocess.run(command, capture_output=True, shell=True)
 
-        command = 'git pull --all'
-        res = subprocess.run(command, capture_output=True, shell=True)
+    os.chdir(WORKDIR)
 
-        db_log.insert_one({'text': command,
-                           'time': datetime.datetime.now(),
-                           'data': {
-                               'repo': self.repo['_id'],
-                               'error': b2s(res.stderr),
-                               'output': b2s(res.stdout)
-                           }})
+    return b2s(res.stdout).splitlines()
 
-        os.chdir(workdir)
 
-    def log(self):
-        """Return the logs of the repository.
+def pull():
+    """Pull all branches from the repository this instance is assigned to.
 
-        """
+    """
 
-        os.chdir('repos/{}'.format(self.repo['title']))
+    os.chdir('repos/{}'.format(REPO['title']))
 
-        command = 'git log --numstat --no-merges --date=unix --after={}'.format(self.repo['end'].date())
-        print(command)
-        res = subprocess.run(command, capture_output=True, shell=True)
+    command = 'git pull --all'
+    _ = subprocess.run(command, capture_output=True, shell=True)
 
-        os.chdir(workdir)
+    os.chdir(WORKDIR)
 
-        return b2s(res.stdout).splitlines()
 
-    def show(self, commit_id, path):
-        """Return the contents of a version of a file as a string.
+def log():
+    """Return the logs of the repository.
 
-        """
+    """
 
-        os.chdir('repos/{}'.format(self.repo['title']))
+    os.chdir('repos/{}'.format(REPO['title']))
 
-        command = 'git show {}:{}'.format(commit_id, path)
-        res = subprocess.run(command, capture_output=True, shell=True)
+    command = 'git log --numstat --no-merges --date=unix --after={}'.format(REPO['end'].date())
+    print(command)
+    res = subprocess.run(command, capture_output=True, shell=True)
 
-        os.chdir(workdir)
+    os.chdir(WORKDIR)
 
-        if res.returncode == 0:
-            return b2s(res.stdout)
-        else:
-            return ''
+    return b2s(res.stdout).splitlines()
+
+
+def show(commit_id, path):
+    """Return the contents of a version of a file as a string.
+
+    """
+
+    os.chdir('repos/{}'.format(REPO['title']))
+
+    command = 'git show {}:{}'.format(commit_id, path)
+    res = subprocess.run(command, capture_output=True, shell=True)
+
+    os.chdir(WORKDIR)
+
+    if res.returncode == 0:
+        return b2s(res.stdout)
+    else:
+        return ''
