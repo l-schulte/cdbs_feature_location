@@ -1,4 +1,4 @@
-from git import interpreter, cli
+from git import interpreter, cli, DIFF_PARAMETERS
 
 
 def crawl(repo):
@@ -19,9 +19,7 @@ def get_diff(commit_id, steps_back=1):
 
     """
 
-    parameters = ['--histogram']
-
-    return cli.diff(commit_id, steps_back, parameters)
+    return cli.diff(commit_id, steps_back, DIFF_PARAMETERS)
 
 
 def get_file_content(commit_id, path):
