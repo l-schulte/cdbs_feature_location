@@ -6,6 +6,20 @@ import progressbar
 from git.interpreter import LANGUAGE_REGX
 
 
+def __join_json(j1, j2):
+
+    if j2 is None:
+        return j1
+
+    for key in j2:
+        if key in j1:
+            j1[key] += j2[key]
+        else:
+            j1[key] = j2[key]
+
+    return j1
+
+
 def log(log):
     """Read a git log and return all commits and changes.
 
@@ -115,35 +129,29 @@ def diff(diff):
     """
     # iterate over files in diff
 
-    changes = []
-
-    line_buffer = []
-
-    for line in diff:
-        if re.search(r'^diff --git .+', line) and not line_buffer == []:
-
-            changes.extend(__interpret_file_diff(line_buffer))
-
-            line_buffer = []
-
-        line_buffer.append(line)
-
-    return changes
-
-
-def __interpret_file_diff(lines):
-    """Extract changed methods from git diff of one file using regex.
-
-    """
+    changes = {}
 
     old_path = None
     new_path = None
+    line_buffer = []
 
-    chunk_head_old_start_line = None
-    chunk_head_new_start_line = None
-    chunk_line_buffer = []
+    for line in diff:
 
-    for line in lines:
+        if re.search(r'^diff --git .+', line):
+
+            if not line_buffer == []:
+
+                changed_methods = _interpret_file_diff(line_buffer, new_path)
+
+                changes[new_path] = {
+                    'old_path': old_path,
+                    'changed_methods': changed_methods
+                }
+
+            old_path = None
+            new_path = None
+            line_buffer = []
+            continue
 
         if not old_path or not new_path:
 
@@ -156,19 +164,45 @@ def __interpret_file_diff(lines):
                 new_path = r_new_path.group(1)
                 continue
 
+            continue
+
         if old_path and new_path:
+            line_buffer.append(line)
 
-            r_chunk_head = re.search(r'^@@ -(\d+),\d+ \+(\d+),\d+ @@ (.*)', line)
-            if r_chunk_head:
+    return changes
 
-                methods_changed = _interpret_file_chunk_diff(new_path, chunk_line_buffer,
-                                                             chunk_head_old_start_line, chunk_head_new_start_line)
 
-                chunk_head_old_start_line = r_chunk_head.group(1)
-                chunk_head_new_start_line = r_chunk_head.group(2)
-                chunk_line_buffer = [r_chunk_head.group(3)]
+def _interpret_file_diff(lines, new_path):
+    """Extract changed methods from git diff of one file using regex.
 
+    """
+
+    chunk_head_old_start_line = None
+    chunk_head_new_start_line = None
+    chunk_line_buffer = []
+
+    res = {}
+
+    for line in lines:
+
+        r_chunk_head = re.search(r'^@@ -(\d+),\d+ \+(\d+),\d+ @@ (.*)', line)
+        if r_chunk_head:
+            methods_changed = _interpret_file_chunk_diff(new_path, chunk_line_buffer,
+                                                         chunk_head_old_start_line, chunk_head_new_start_line)
+            res = __join_json(res, methods_changed)
+
+            chunk_head_old_start_line = r_chunk_head.group(1)
+            chunk_head_new_start_line = r_chunk_head.group(2)
+            chunk_line_buffer = [r_chunk_head.group(3)]
+
+        else:
             chunk_line_buffer.append(line)
+
+    methods_changed = _interpret_file_chunk_diff(new_path, chunk_line_buffer,
+                                                 chunk_head_old_start_line, chunk_head_new_start_line)
+    res = __join_json(res, methods_changed)
+
+    return res
 
 
 def _interpret_file_chunk_diff(path, lines, old_start, new_start):
@@ -177,12 +211,12 @@ def _interpret_file_chunk_diff(path, lines, old_start, new_start):
     """
 
     if lines == []:
-        return
+        return {}
 
     extension = path.split('.')[-1]
 
     if extension not in LANGUAGE_REGX:
-        return None
+        return {}
 
     rs_method_name = LANGUAGE_REGX[extension]['method_name']
 
@@ -211,7 +245,7 @@ def _interpret_file_chunk_diff(path, lines, old_start, new_start):
 
         if method_name is not None and indentation is not None:
 
-            re_res = re.search(r'^(\+|\-| )' + indentation + r'(\t+| +)', line)  # check if there is more indentation
+            re_res = re.search(r'^(\+|\-| )' + indentation + r'(\t+| +)', line)
             if re_res is not None and re_res.group(1) != ' ':
                 methods_changed[method_name] += 1
                 continue
