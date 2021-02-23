@@ -159,10 +159,10 @@ def __interpret_file_diff(lines):
         if old_path and new_path:
 
             r_chunk_head = re.search(r'^@@ -(\d+),\d+ \+(\d+),\d+ @@ (.*)', line)
-            if r_chunk_head and not chunk_line_buffer == []:
+            if r_chunk_head:
 
-                res = __interpret_file_chunk_diff(new_path, chunk_line_buffer,
-                                                  chunk_head_old_start_line, chunk_head_new_start_line)
+                methods_changed = _interpret_file_chunk_diff(new_path, chunk_line_buffer,
+                                                             chunk_head_old_start_line, chunk_head_new_start_line)
 
                 chunk_head_old_start_line = r_chunk_head.group(1)
                 chunk_head_new_start_line = r_chunk_head.group(2)
@@ -171,11 +171,13 @@ def __interpret_file_diff(lines):
             chunk_line_buffer.append(line)
 
 
-def __interpret_file_chunk_diff(path, lines, old_start, new_start):
-    """Extract changed methods from a git diff chunks using regex.
+def _interpret_file_chunk_diff(path, lines, old_start, new_start):
+    """Extract changed methods from a git diff chunk using regex.
 
     """
-    # return methods names which contain changes
+
+    if lines == []:
+        return
 
     extension = path.split('.')[-1]
 
@@ -186,22 +188,39 @@ def __interpret_file_chunk_diff(path, lines, old_start, new_start):
 
     indentation = None
     method_name = None
-    methods_changed = {}
+    methods_changed = {'unknown': 0}
 
     for line in lines:
+
+        if line == '' or re.search(r'^[\+|\-]$', line):
+            continue
 
         re_res = re.search(rs_method_name, line)
         if re_res is not None:
 
             changed = re_res.group(1) != ' '
-            indentation = re_res.group(2) * 2  # what if there is no indentation on the function?
+            indentation = re_res.group(2)
             method_name = re_res.group(3)
 
             if changed:
-                methods_changed[method_name] = 0
-            else:
                 methods_changed[method_name] = 1
+            else:
+                methods_changed[method_name] = 0
 
             continue
 
-        re_res = re.search(r'')  # check if indentation is right
+        if method_name is not None and indentation is not None:
+
+            re_res = re.search(r'^(\+|\-| )' + indentation + r'(\t+| +)', line)  # check if there is more indentation
+            if re_res is not None and re_res.group(1) != ' ':
+                methods_changed[method_name] += 1
+                continue
+
+        re_res = re.search(r'^(\+|\-| )(\t+| +)', line)
+        if re_res is not None and re_res.group(1) != ' ':
+            methods_changed['unknown'] += 1
+            method_name = None
+            indentation = None
+            continue
+
+    return methods_changed
