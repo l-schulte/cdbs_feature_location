@@ -68,7 +68,7 @@ def log():
 
     os.chdir('repos/{}'.format(REPO['title']))
 
-    command = 'git log --numstat --no-merges --date=unix --after={}'.format(REPO['end'].date())
+    command = 'git log --numstat --no-merges --date=unix --after={}'.format(REPO['end'])
     print(command)
     res = subprocess.run(command, capture_output=True, shell=True)
 

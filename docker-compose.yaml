@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  mongodb:
+    image: mongo:4
+    container_name: db
+    restart: always
+    networks:
+      - cdbs_fl_net
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: localdontuseglobal
+      MONGO_INITDB_DATABASE: cdbs_v1
+    ports:
+      - 27017:27017
+
+  git-importer:
+    build:
+      context: apps/importer/
+    container_name: git-importer
+    networks:
+      - cdbs_fl_net
+    command: python -u app.py
+
+networks:
+  cdbs_fl_net:

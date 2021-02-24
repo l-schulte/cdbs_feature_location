@@ -173,7 +173,7 @@ class TestInterpreter(unittest.TestCase):
 
         lines = FULL_DIFF.splitlines()
 
-        res = interpreter.diff(lines)
+        res = interpreter.crawl_diff(lines)
 
         self.assertEqual(res, {
             'b/apps/importer/git/git.py': {

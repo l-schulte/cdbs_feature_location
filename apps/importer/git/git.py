@@ -1,25 +1,22 @@
-from git import interpreter, cli, DIFF_PARAMETERS
+from git import cli, DIFF_PARAMETERS
+from git.interpreter import interpreter
 
 
-def crawl(repo):
-    """Crawl the repository returning codebase history data.
+def crawl_commits(repo):
+    """Crawl the repository all commits history data.
 
     """
-
-    cli.clone()
-    cli.pull()
-    cli.checkout(repo['start'])
 
     log = cli.log()
     return interpreter.log(log)
 
 
-def get_diff(commit_id, steps_back=1):
+def crawl_diff(commit_id, steps_back=1):
     """Returns contents of a git diff operation
 
     """
-
-    return cli.diff(commit_id, steps_back, DIFF_PARAMETERS)
+    diff = cli.diff(commit_id, steps_back, DIFF_PARAMETERS)
+    return interpreter.crawl_diff(diff)
 
 
 def get_file_content(commit_id, path):
@@ -28,6 +25,15 @@ def get_file_content(commit_id, path):
     """
 
     return cli.show(commit_id, path)
+
+
+def clone_repo():
+    """Clones the repository.
+
+    """
+
+    cli.clone()
+    cli.pull()
 
 
 def checkout_commit(repo, commit_id):

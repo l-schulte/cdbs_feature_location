@@ -86,12 +86,12 @@ def __interpret_commit(lines):
     }, id, date
 
 
-def diff(diff):
+def crawl_diff(diff):
     """Read a git diff and return information on methods that have been changed
 
     """
 
-    changes = {}
+    changes = []
 
     old_path = None
     new_path = None
@@ -105,10 +105,11 @@ def diff(diff):
 
                 changed_methods = _interpret_file_diff(line_buffer, new_path)
 
-                changes[new_path] = {
+                changes.append({
+                    'new_path': new_path,
                     'old_path': old_path,
                     'changed_methods': changed_methods
-                }
+                })
 
             old_path = None
             new_path = None
