@@ -7,6 +7,9 @@ from git.interpreter import LANGUAGE_REGX
 
 
 def __join_json(j1, j2):
+    """Summs up fields from two jsons, assuming values are numbers
+
+    """
 
     if j2 is None:
         return j1
@@ -21,12 +24,11 @@ def __join_json(j1, j2):
 
 
 def log(log):
-    """Read a git log and return all commits and changes.
+    """Read a git log and return all commits.
 
     """
 
     commits = []
-    changes = []
 
     line_buffer = []
     for line in progressbar.progressbar(log):
@@ -36,13 +38,11 @@ def log(log):
             commit, commit_id, date = __interpret_commit(line_buffer)
             commits.append(commit)
 
-            changes.extend(__interpret_changes(line_buffer, commit_id, date))
-
             line_buffer = []
 
         line_buffer.append(line)
 
-    return commits, changes
+    return commits
 
 
 def __interpret_commit(lines):
@@ -86,48 +86,10 @@ def __interpret_commit(lines):
     }, id, date
 
 
-def __interpret_changes(lines, commit_id, date):
-    """Extract data from change lines using regex.
-
-    """
-
-    changes = []
-
-    for line in lines[4:]:
-
-        rline = re.search(r'^(\d+)\s+(\d+)\s+(.+)', line)
-        if rline:
-            added = rline.group(1)
-            removed = rline.group(2)
-
-            path_change = re.search(r'(.*){(.*) => (.*)}(.*)', rline.group(3))
-
-            if path_change:
-                path = (path_change.group(1)
-                        + path_change.group(3) + path_change.group(4)).replace('//', '/')
-                old_path = (path_change.group(1)
-                            + path_change.group(2) + path_change.group(4)).replace('//', '/')
-            else:
-                path = rline.group(3)
-                old_path = rline.group(3)
-
-            changes.append({
-                'commit_id': commit_id,
-                'date': date,
-                'added': added,
-                'removed': removed,
-                'path': path,
-                'old_path': old_path
-            })
-
-    return changes
-
-
 def diff(diff):
     """Read a git diff and return information on methods that have been changed
 
     """
-    # iterate over files in diff
 
     changes = {}
 
