@@ -178,10 +178,9 @@ def _interpret_file_chunk_diff(path, lines, old_start, new_start):
 
     extension = path.split('.')[-1]
 
-    if extension not in LANGUAGE_REGX:
-        return {}
-
-    rs_method_name = LANGUAGE_REGX[extension]['method_name']
+    rs_method_name = None
+    if extension in LANGUAGE_REGX:
+        rs_method_name = LANGUAGE_REGX[extension]['method_name']
 
     indentation = None
     method_name = None
@@ -192,7 +191,9 @@ def _interpret_file_chunk_diff(path, lines, old_start, new_start):
         if line == '' or re.search(r'^[\+|\-]$', line):
             continue
 
-        re_res = re.search(rs_method_name, line)
+        re_res = None
+        if rs_method_name:
+            re_res = re.search(rs_method_name, line)
         if re_res is not None:
 
             changed = re_res.group(1) != ' '
