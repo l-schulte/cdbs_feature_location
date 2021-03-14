@@ -11,7 +11,7 @@ def clone():
 
     os.chdir('repos')
 
-    command = 'git clone {}'.format(REPO['url'])
+    command = 'git clone {}'.format(REPO['git-url'])
     _ = subprocess.run(command, capture_output=True, shell=True)
 
     os.chdir(WORKDIR)

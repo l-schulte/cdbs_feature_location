@@ -6,7 +6,12 @@ if not os.path.isdir('repos'):
     os.mkdir('repos')
 WORKDIR = os.getcwd()
 
-REPO = {'title': 'cdbs_hist_kau', 'url': 'https://github.com/l-schulte/cdbs_hist_kau.git', 'end': date(2020, 1, 1)}
+REPO = {
+    'title': 'zookeeper',
+    'git-url': 'https://github.com/apache/zookeeper.git',
+    'jira-url': 'https://issues.apache.org/jira',
+    'end': date(2000, 1, 1)
+}
 
 
 MONGODB_ADDR = 'db'
