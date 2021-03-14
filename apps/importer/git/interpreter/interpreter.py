@@ -57,11 +57,11 @@ def __interpret_commit(lines):
 
     tmp = re.search(r'^Author: (.+) <(.+)?>', lines[1])
 
-    if tmp is None:
-        raise Error('no match for author in line {}'.format(lines[1]))
+    author, email = None, None
 
-    author = tmp.group(1)
-    email = tmp.group(2)
+    if tmp is not None:
+        author = tmp.group(1)
+        email = tmp.group(2)
 
     tmp = int(re.search(r'^Date: (.+)', lines[2]).group(1))
 
