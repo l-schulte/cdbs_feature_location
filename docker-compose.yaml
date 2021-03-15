@@ -14,10 +14,10 @@ services:
     ports:
       - 27017:27017
 
-  git-importer:
+  importer:
     build:
       context: apps/importer/
-    container_name: git-importer
+    container_name: importer
     networks:
       - cdbs_fl_net
     command: python -u app.py
