@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "name": "Importer",
+      "path": "apps\\importer"
+    }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": ".",
+    "workbench.colorCustomizations": {
+      "titleBar.activeBackground": "#17a812"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "michelemelluso.gitignore",
+      "eamodio.gitlens",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}

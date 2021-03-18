@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "name": "Feature Location",
+      "path": "apps\\feature-location"
+    }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "./",
+    "workbench.colorCustomizations": {
+      "titleBar.activeBackground": "#a81612"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "michelemelluso.gitignore",
+      "eamodio.gitlens",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}
