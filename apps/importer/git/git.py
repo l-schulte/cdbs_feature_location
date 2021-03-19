@@ -11,11 +11,11 @@ def crawl_commits(repo):
     return interpreter.log(log)
 
 
-def crawl_diff(commit_id, steps_back=1):
+def crawl_diff(commit_id):
     """Returns contents of a git diff operation
 
     """
-    diff = cli.diff(commit_id, steps_back, DIFF_PARAMETERS)
+    diff = cli.diff(commit_id, DIFF_PARAMETERS)
     return interpreter.crawl_diff(diff)
 
 

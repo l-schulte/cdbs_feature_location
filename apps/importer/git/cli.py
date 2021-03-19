@@ -32,7 +32,7 @@ def checkout(commit_id):
     return res
 
 
-def diff(commit_id, steps_back, parameters=[]):
+def diff(commit_id, parameters=[]):
     """Performs a diff operation on two versions of the repository
 
     """
@@ -40,7 +40,7 @@ def diff(commit_id, steps_back, parameters=[]):
     os.chdir('repos/{}'.format(REPO['title']))
 
     parameters = ' '.join(parameters)
-    command = 'git diff {}~{} {}'.format(commit_id, steps_back, parameters)
+    command = 'git diff {}^ {} {}'.format(commit_id, commit_id, parameters)
     res = subprocess.run(command, capture_output=True, shell=True)
 
     os.chdir(WORKDIR)
