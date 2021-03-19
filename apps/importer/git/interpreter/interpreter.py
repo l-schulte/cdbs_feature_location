@@ -181,6 +181,8 @@ def _interpret_file_chunk_diff(path, lines, old_start, new_start):
     rs_method_name = None
     if extension in LANGUAGE_REGX:
         rs_method_name = LANGUAGE_REGX[extension]['method_name']
+    else:
+        return {}
 
     indentation = None
     method_name = None

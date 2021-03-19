@@ -10,7 +10,8 @@ REPO = {
     'title': 'zookeeper',
     'git-url': 'https://github.com/apache/zookeeper.git',
     'jira-url': 'https://issues.apache.org/jira',
-    'end': date(2000, 1, 1)
+    'after': date(2000, 1, 1),
+    'before': date(2012, 11, 19)
 }
 
 

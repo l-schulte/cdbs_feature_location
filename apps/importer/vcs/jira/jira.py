@@ -27,7 +27,7 @@ def get_features(commits):
 
     for commit in progressbar.progressbar(commits):
 
-        res = re.search(r'^\s*(\w+-\d+):', commit['comment'])
+        res = re.search(r'^\s*(\w+-\d+)\D', commit['comment'])
         if res:
             commit['feature_id'] = res.group(1)
         else:
