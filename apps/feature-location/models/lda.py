@@ -7,14 +7,28 @@ FILE_NAME = 'lda'
 TOPICS = 20
 
 
-def run():
+def evaluate(text):
+
+    mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
+
+    word_list = data.nltk_filter(text)
+
+    if word_list:
+        doc = mdl.make_doc(word_list)
+
+        return mdl.infer(doc)
+
+    return 'error'
+
+
+def train():
 
     mdl = tp.LDAModel(k=TOPICS, seed=123)
 
     data_list = []
 
     for document in db_commits.find(limit=1000):
-        word_list = data.nltk_filter(document)
+        word_list = data.nltk_doc_filter(document)
         if word_list:
             idx = mdl.add_doc(word_list)
             tmp = {
