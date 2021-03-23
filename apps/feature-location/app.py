@@ -1,30 +1,38 @@
+import argparse
+
 from models import lda, pachinko
 
-# lda.train()
 
-# pachinko.train()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--train', nargs='+', choices=['lda', 'pa'], help='train cluster')
+    parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
+    parser.add_argument('-q', '--query', help='evaluate text query')
+    parser.add_argument('-f', '--functions', action='store_true', help='list functions')
+    parser.add_argument('-n', '--number', help='number of documents')
 
-text = 'Stat enchaned to include num of children and size'
+    args = parser.parse_args()
 
-print('----- LDA')
+    if args.train:
 
-res = lda.evaluate(text)
+        if 'lda' in args.train:
+            lda.train()
 
-print(res)
+        if 'pa' in args.train:
+            pachinko.train()
 
-# print('----- Pachinko')
+    if args.eval:
 
-# res = pachinko.evaluate(text)
+        if not args.query:
+            print("text query ['-q', '--query'] required for evaluation")
 
-# print(res)
+        if 'lda' in args.eval:
+            res = lda.evaluate(args.query)
+            lda.display(res, functions=args.functions)
 
-# # test_doc = mdl.make_doc('junit quote follower time thread'.split())
-# test_doc = mdl.docs[0]
+        if 'pa' in args.eval:
+            res = pachinko.evaluate(args.query)
+            pachinko.display(res, functions=args.functions)
 
-# print(test_doc)
 
-# topic_dist, ll = mdl.infer(test_doc)
-# print("Topic Distribution for Unseen Docs: ", topic_dist)
-# print("Log-likelihood of inference: ", ll)
-
-# print('done')
+main()

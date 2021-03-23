@@ -1,5 +1,7 @@
+from models.models import draw_page
 import tomotopy as tp
 import pandas as pd
+import json
 
 from data import db_commits, data
 
@@ -7,11 +9,27 @@ FILE_NAME = 'lda'
 TOPICS = 20
 
 
+def display(results, top_n=10, functions=False):
+
+    result, log_ll = results
+    max_value = max(result)
+    max_index = result.tolist().index(max_value)
+
+    df = pd.read_csv('{}.csv'.format(FILE_NAME))
+
+    sorted_df = df.sort_values(by='topic_{}'.format(max_index))
+
+    draw_page(sorted_df, top_n, functions)
+
+
 def evaluate(text):
 
-    mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
-
     word_list = data.nltk_filter(text)
+
+    print('\nevaluating <{}> for lda...'.format(text))
+    print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
+
+    mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -34,7 +52,7 @@ def train():
             tmp = {
                 'id': str(document['_id']),
                 'feature': document['feature_id'],
-                'mapping': document['diff'],
+                'mapping': json.dumps(document['diff']),
                 'model_index': idx
             }
             data_list.append(tmp)

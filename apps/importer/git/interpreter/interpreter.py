@@ -103,13 +103,16 @@ def crawl_diff(diff):
 
             if not line_buffer == []:
 
-                changed_methods = _interpret_file_diff(line_buffer, new_path)
+                extension = new_path.split('.')[-1]
+                if extension in LANGUAGE_REGX:
+                    
+                    changed_methods = _interpret_file_diff(line_buffer, extension)
 
-                changes.append({
-                    'new_path': new_path,
-                    'old_path': old_path,
-                    'changed_methods': changed_methods
-                })
+                    changes.append({
+                        'new_path': new_path,
+                        'old_path': old_path,
+                        'changed_methods': changed_methods
+                    })
 
             old_path = None
             new_path = None
@@ -135,7 +138,7 @@ def crawl_diff(diff):
     return changes
 
 
-def _interpret_file_diff(lines, new_path):
+def _interpret_file_diff(lines, extension):
     """Extract changed methods from git diff of one file using regex.
 
     """
@@ -150,7 +153,7 @@ def _interpret_file_diff(lines, new_path):
 
         r_chunk_head = re.search(r'^@@ -(\d+),\d+ \+(\d+),\d+ @@ (.*)', line)
         if r_chunk_head:
-            methods_changed = _interpret_file_chunk_diff(new_path, chunk_line_buffer,
+            methods_changed = _interpret_file_chunk_diff(extension, chunk_line_buffer,
                                                          chunk_head_old_start_line, chunk_head_new_start_line)
             res = __join_json(res, methods_changed)
 
@@ -161,22 +164,20 @@ def _interpret_file_diff(lines, new_path):
         else:
             chunk_line_buffer.append(line)
 
-    methods_changed = _interpret_file_chunk_diff(new_path, chunk_line_buffer,
+    methods_changed = _interpret_file_chunk_diff(extension, chunk_line_buffer,
                                                  chunk_head_old_start_line, chunk_head_new_start_line)
     res = __join_json(res, methods_changed)
 
     return res
 
 
-def _interpret_file_chunk_diff(path, lines, old_start, new_start):
+def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
     """Extract changed methods from a git diff chunk using regex.
 
     """
 
     if lines == []:
         return {}
-
-    extension = path.split('.')[-1]
 
     rs_method_name = None
     if extension in LANGUAGE_REGX:

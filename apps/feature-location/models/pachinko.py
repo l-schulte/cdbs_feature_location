@@ -1,5 +1,7 @@
+from models.models import draw_page
 import tomotopy as tp
 import pandas as pd
+import json
 
 from data import db_commits, data
 
@@ -8,7 +10,41 @@ TOPICS_K1 = 10
 TOPICS_K2 = 10
 
 
+def display(results, top_n=10, functions=False):
+
+    (super_topics_prob, sub_topics_prob), log_ll = results
+
+    max_value_super = max(super_topics_prob)
+    max_index_super = super_topics_prob.tolist().index(max_value_super)
+
+    max_value_sub = max(sub_topics_prob)
+    max_index_sub = sub_topics_prob.tolist().index(max_value_sub)
+
+    df = pd.read_csv('{}.csv'.format(FILE_NAME))
+
+    df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['topic_{}'.format(max_index_sub)]) / 2
+    sorted_df = df.sort_values(by='most_likely')
+
+    draw_page(sorted_df, top_n, functions)
+
+    # super_topics = list(enumerate(super_topics_prob, 0))
+    # sub_topics = list(enumerate(sub_topics_prob, 0))
+
+    # print(super_topics)
+    # print(sub_topics)
+
+    # topic_combinations = []
+    # for i, super_topic_prob in super_topics:
+    #     for j, sub_topic_prob in sub_topics:
+    #         mean = (super_topic_prob + sub_topic_prob) / 2
+    #         topic_combinations.append((i, j, mean))
+
+    # topic_combinations = sorted(topic_combinations, key=lambda t: t[2], reverse=True)
+
+
 def evaluate(text):
+
+    print('\nevaluating <{}> for pa...'.format(text))
 
     mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
 
@@ -35,7 +71,7 @@ def train():
             tmp = {
                 'id': str(document['_id']),
                 'feature': document['feature_id'],
-                'mapping': document['diff'],
+                'mapping': json.dumps(document['diff']),
                 'model_index': idx
             }
             data_list.append(tmp)
