@@ -3,7 +3,7 @@ import tomotopy as tp
 import pandas as pd
 import json
 
-from data import db_commits, data
+from data import data
 
 FILE_NAME = 'pa'
 TOPICS_K1 = 10
@@ -60,6 +60,7 @@ def evaluate(text):
 
 def train():
 
+    db_commits = data.get_db()
     mdl = tp.PAModel(k1=TOPICS_K1, k2=TOPICS_K2, seed=123)
 
     data_list = []

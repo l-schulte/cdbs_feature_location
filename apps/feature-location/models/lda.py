@@ -3,7 +3,7 @@ import tomotopy as tp
 import pandas as pd
 import json
 
-from data import db_commits, data
+from data import data
 
 FILE_NAME = 'lda'
 TOPICS = 20
@@ -41,6 +41,7 @@ def evaluate(text):
 
 def train():
 
+    db_commits = data.get_db()
     mdl = tp.LDAModel(k=TOPICS, seed=123)
 
     data_list = []
