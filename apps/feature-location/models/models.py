@@ -1,7 +1,7 @@
 import json
 
 
-def draw_page(df, top_n, functions):
+def draw_page(df, top_n, classes, methods):
     cnt = 0
     for row in df.mapping[0:top_n]:
         cnt += 1
@@ -15,8 +15,10 @@ def draw_page(df, top_n, functions):
         for item in data:
             print(' {}'.format(item['new_path'][1:]))
 
-            if not functions:
-                continue
+            if methods:
+                for method in sorted(item['methods'], key=lambda x: item['methods'][x], reverse=True):
+                    print('  ->  {} ({})'.format(method, item['methods'][method]))
 
-            for function in sorted(item['changed_methods'], key=lambda x: item['changed_methods'][x], reverse=True):
-                print('\t{} ({})'.format(function, item['changed_methods'][function]))
+            if classes:
+                for c in item['classes']:
+                    print('  •  {}'.format(c))

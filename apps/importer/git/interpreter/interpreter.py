@@ -105,13 +105,14 @@ def crawl_diff(diff):
 
                 extension = new_path.split('.')[-1]
                 if extension in LANGUAGE_REGX:
-                    
-                    changed_methods = _interpret_file_diff(line_buffer, extension)
+
+                    methods, classes = _interpret_file_diff(line_buffer, extension)
 
                     changes.append({
                         'new_path': new_path,
                         'old_path': old_path,
-                        'changed_methods': changed_methods
+                        'classes': classes,
+                        'methods': methods
                     })
 
             old_path = None
@@ -147,15 +148,15 @@ def _interpret_file_diff(lines, extension):
     chunk_head_new_start_line = None
     chunk_line_buffer = []
 
-    res = {}
+    methods = {}
 
     for line in lines:
 
         r_chunk_head = re.search(r'^@@ -(\d+),\d+ \+(\d+),\d+ @@ (.*)', line)
         if r_chunk_head:
-            methods_changed = _interpret_file_chunk_diff(extension, chunk_line_buffer,
-                                                         chunk_head_old_start_line, chunk_head_new_start_line)
-            res = __join_json(res, methods_changed)
+            methods_changed, classes_in_file = _interpret_file_chunk_diff(extension, chunk_line_buffer,
+                                                                          chunk_head_old_start_line, chunk_head_new_start_line)
+            methods = __join_json(methods, methods_changed)
 
             chunk_head_old_start_line = r_chunk_head.group(1)
             chunk_head_new_start_line = r_chunk_head.group(2)
@@ -164,11 +165,11 @@ def _interpret_file_diff(lines, extension):
         else:
             chunk_line_buffer.append(line)
 
-    methods_changed = _interpret_file_chunk_diff(extension, chunk_line_buffer,
-                                                 chunk_head_old_start_line, chunk_head_new_start_line)
-    res = __join_json(res, methods_changed)
+    methods_changed, classes_in_file = _interpret_file_chunk_diff(extension, chunk_line_buffer,
+                                                                  chunk_head_old_start_line, chunk_head_new_start_line)
+    methods = __join_json(methods, methods_changed)
 
-    return res
+    return methods, classes_in_file
 
 
 def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
@@ -177,16 +178,18 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
     """
 
     if lines == []:
-        return {}
+        return {}, {}
 
-    rs_method_name = None
+    re_method_name = None
     if extension in LANGUAGE_REGX:
-        rs_method_name = LANGUAGE_REGX[extension]['method_name']
+        re_method_name = LANGUAGE_REGX[extension]['method_name']
+        re_class_name = LANGUAGE_REGX[extension]['class_name']
     else:
-        return {}
+        return {}, {}
 
-    indentation = None
+    classes_in_file = []
     method_name = None
+    method_indentation = None
     methods_changed = {'unknown': 0}
 
     for line in lines:
@@ -194,14 +197,22 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
         if line == '' or re.search(r'^[\+|\-]$', line):
             continue
 
-        re_res = None
-        if rs_method_name:
-            re_res = re.search(rs_method_name, line)
-        if re_res is not None:
+        re_res_class_name = None
+        if re_class_name:
+            re_res_class_name = re.search(re_class_name, line)
+        if re_res_class_name is not None:
+            class_name = re_res_class_name.group(3)
+            classes_in_file.append(class_name)
+            continue
 
-            changed = re_res.group(1) != ' '
-            indentation = re_res.group(2)
-            method_name = re_res.group(3)
+        re_res_unknown_changed = None
+        if re_method_name:
+            re_res_unknown_changed = re.search(re_method_name, line)
+        if re_res_unknown_changed is not None:
+
+            changed = re_res_unknown_changed.group(1) != ' '
+            method_indentation = re_res_unknown_changed.group(2)
+            method_name = re_res_unknown_changed.group(3)
 
             if changed:
                 methods_changed[method_name] = 1
@@ -210,18 +221,20 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
 
             continue
 
-        if method_name is not None and indentation is not None:
+        if method_name is not None and method_indentation is not None:
 
-            re_res = re.search(r'^(\+|\-| )' + indentation + r'(\t+| +)', line)
-            if re_res is not None and re_res.group(1) != ' ':
+            change_inside = re.search(r'^(\+|\-| )' + method_indentation + r'(\t+| +)', line)
+            if change_inside is not None and change_inside.group(1) != ' ':
                 methods_changed[method_name] += 1
                 continue
 
-        re_res = re.search(r'^(\+|\-| )(\t+| +)', line)
-        if re_res is not None and re_res.group(1) != ' ':
+        re_res_unknown_changed = re.search(r'^(\+|\-| )(\t+| +)', line)
+        if re_res_unknown_changed is not None and re_res_unknown_changed.group(1) != ' ':
+
             methods_changed['unknown'] += 1
             method_name = None
-            indentation = None
+            method_indentation = None
+
             continue
 
-    return methods_changed
+    return methods_changed, classes_in_file
