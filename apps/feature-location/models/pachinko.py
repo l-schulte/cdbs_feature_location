@@ -44,11 +44,11 @@ def display(results, top_n=10, functions=False):
 
 def evaluate(text):
 
+    word_list = data.nltk_filter(text)
     print('\nevaluating <{}> for pa...'.format(text))
+    print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
 
     mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
-
-    word_list = data.nltk_filter(text)
 
     if word_list:
         doc = mdl.make_doc(word_list)
