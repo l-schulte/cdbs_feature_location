@@ -10,7 +10,7 @@ TOPICS_K1 = 10
 TOPICS_K2 = 10
 
 
-def display(results, top_n=10, functions=False):
+def display(results, top_n=10, classes=False, methods=False):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
 
@@ -25,7 +25,7 @@ def display(results, top_n=10, functions=False):
     df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['topic_{}'.format(max_index_sub)]) / 2
     sorted_df = df.sort_values(by='most_likely')
 
-    draw_page(sorted_df, top_n, functions)
+    draw_page(sorted_df, top_n, classes, methods)
 
     # super_topics = list(enumerate(super_topics_prob, 0))
     # sub_topics = list(enumerate(sub_topics_prob, 0))

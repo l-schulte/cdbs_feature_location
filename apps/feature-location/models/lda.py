@@ -9,7 +9,7 @@ FILE_NAME = 'lda'
 TOPICS = 20
 
 
-def display(results, top_n=10, functions=False):
+def display(results, top_n=10, classes=False, methods=False):
 
     result, log_ll = results
     max_value = max(result)
@@ -19,7 +19,7 @@ def display(results, top_n=10, functions=False):
 
     sorted_df = df.sort_values(by='topic_{}'.format(max_index))
 
-    draw_page(sorted_df, top_n, functions)
+    draw_page(sorted_df, top_n, classes, methods)
 
 
 def evaluate(text):

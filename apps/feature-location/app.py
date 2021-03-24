@@ -8,7 +8,8 @@ def main():
     parser.add_argument('-t', '--train', nargs='+', choices=['lda', 'pa'], help='train cluster')
     parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
     parser.add_argument('-q', '--query', help='evaluate text query')
-    parser.add_argument('-f', '--functions', action='store_true', help='list functions')
+    parser.add_argument('-m', '--methods', action='store_true', help='list methods')
+    parser.add_argument('-c', '--classes', action='store_true', help='list classes')
     parser.add_argument('-p', '--pages', help='number of documents', default=10, type=int)
 
     args = parser.parse_args()
@@ -28,11 +29,11 @@ def main():
 
         if 'lda' in args.eval:
             res = lda.evaluate(args.query)
-            lda.display(res, top_n=args.pages, functions=args.functions)
+            lda.display(res, top_n=args.pages, classes=args.classes, methods=args.methods)
 
         if 'pa' in args.eval:
             res = pachinko.evaluate(args.query)
-            pachinko.display(res, top_n=args.pages, functions=args.functions)
+            pachinko.display(res, top_n=args.pages, classes=args.classes, methods=args.methods)
 
 
 main()
