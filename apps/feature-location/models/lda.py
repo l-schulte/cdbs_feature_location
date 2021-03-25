@@ -6,7 +6,6 @@ import json
 from data import data
 
 FILE_NAME = 'lda'
-TOPICS = 20
 
 
 def interpret(results, top_n=10, classes=False, methods=False, json=False):
@@ -43,10 +42,10 @@ def evaluate(text):
     return 'error'
 
 
-def train():
+def train(topic_n=20):
 
     db_commits = data.get_db()
-    mdl = tp.LDAModel(k=TOPICS, seed=123)
+    mdl = tp.LDAModel(k=topic_n, seed=123)
 
     data_list = []
 
@@ -64,29 +63,31 @@ def train():
 
     for i in range(0, 100, 10):
         mdl.train(10)
-        print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+        # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
-    for k in range(mdl.k):
-        print('Top 10 words of topic #{}'.format(k))
-        print(mdl.get_topic_words(k, top_n=3))
+    # for k in range(mdl.k):
+    #     print('Top 10 words of topic #{}'.format(k))
+    #     print(mdl.get_topic_words(k, top_n=3))
 
-    mdl.summary()
+    # mdl.summary()
 
     for row in data_list:
 
         doc = mdl.docs[row['model_index']]
-        topics = doc.get_topics(top_n=TOPICS)
+        topics = doc.get_topics(top_n=topic_n)
         topics = sorted(topics, key=lambda item: item[0])
 
-        for t in range(TOPICS):
+        for t in range(topic_n):
             row['topic_{}'.format(t)] = topics[t][1]
 
     columns = ['id', 'feature', 'mapping', 'model_index']
-    columns.extend(['topic_{}'.format(t) for t in range(TOPICS)])
+    columns.extend(['topic_{}'.format(t) for t in range(topic_n)])
     mapping = pd.DataFrame(data_list, columns=columns)
 
     # print(res)
 
     mdl.save('{}.mdl'.format(FILE_NAME))
+
+    print('LDA ll per word \t{}'.format(mdl.ll_per_word))
 
     mapping.to_csv('{}.csv'.format(FILE_NAME))

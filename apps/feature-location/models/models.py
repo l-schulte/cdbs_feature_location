@@ -31,10 +31,9 @@ def get_json(df, log_ll, top_n, classes, methods):
 
     res = {'log_ll': log_ll, 'res': []}
 
-    for i in range(top_n):
-        data = df.loc[i]
-        mapping = json.loads(data.mapping)
-        tmp = {'commit_id': data.id}
+    for id, mapping in zip(df.id[0:top_n], df.mapping[0:top_n]):
+        mapping = json.loads(mapping)
+        tmp = {'commit_id': id}
 
         for item in mapping:
             tmp['path'] = item['new_path'][1:]
