@@ -1,4 +1,4 @@
-from models.models import draw_page
+from models.models import get_json, get_page
 import tomotopy as tp
 import pandas as pd
 import json
@@ -10,7 +10,7 @@ TOPICS_K1 = 10
 TOPICS_K2 = 10
 
 
-def display(results, top_n=10, classes=False, methods=False):
+def interpret(results, top_n=10, classes=False, methods=False, json=False):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
 
@@ -25,7 +25,11 @@ def display(results, top_n=10, classes=False, methods=False):
     df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['topic_{}'.format(max_index_sub)]) / 2
     sorted_df = df.sort_values(by='most_likely')
 
-    draw_page(sorted_df, top_n, classes, methods)
+    if json:
+        return get_json(sorted_df, log_ll, top_n, classes, methods)
+
+    print('log_ll = {}'.format(log_ll))
+    return get_page(sorted_df, top_n, classes, methods)
 
     # super_topics = list(enumerate(super_topics_prob, 0))
     # sub_topics = list(enumerate(sub_topics_prob, 0))
@@ -45,8 +49,8 @@ def display(results, top_n=10, classes=False, methods=False):
 def evaluate(text):
 
     word_list = data.nltk_filter(text)
-    print('\nevaluating <{}> for pa...'.format(text))
-    print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
+    # print('\nevaluating <{}> for pa...'.format(text))
+    # print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
 
     mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
 
