@@ -5,6 +5,6 @@ LANGUAGE_REGX = {
     },
     'java': {
         'method_name': r'^(\+|\-| )( *|\t*)(?:public|protected|private|static|\s) +[\w\<\>\[\]]+\s+(\w+) *\([^\)]*\) *(?:\{?|[^;])',
-        'class_name': r'^(\+|\-| )( *|\t*)(?:public|protected|private|static|\s)? ?class (\w+)'
+        'class_name': r'^(\+|\-| )( *|\t*)(?:public|protected|private) *(?:static)? *(?:abstract)? *(?:final)? class (\w+) (?:\w| )*{'
     }
 }

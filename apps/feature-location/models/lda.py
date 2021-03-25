@@ -1,4 +1,4 @@
-from models.models import draw_page
+from models.models import get_page, get_json
 import tomotopy as tp
 import pandas as pd
 import json
@@ -6,10 +6,9 @@ import json
 from data import data
 
 FILE_NAME = 'lda'
-TOPICS = 20
 
 
-def display(results, top_n=10, classes=False, methods=False):
+def interpret(results, top_n=10, classes=False, methods=False, json=False):
 
     result, log_ll = results
     max_value = max(result)
@@ -19,15 +18,19 @@ def display(results, top_n=10, classes=False, methods=False):
 
     sorted_df = df.sort_values(by='topic_{}'.format(max_index))
 
-    draw_page(sorted_df, top_n, classes, methods)
+    if json:
+        return get_json(sorted_df, log_ll, top_n, classes, methods)
+
+    print('log_ll = {}'.format(log_ll))
+    return get_page(sorted_df, top_n, classes, methods)
 
 
 def evaluate(text):
 
     word_list = data.nltk_filter(text)
 
-    print('\nevaluating <{}> for lda...'.format(text))
-    print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
+    # print('\nevaluating <{}> for lda...'.format(text))
+    # print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
 
     mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
 
@@ -39,10 +42,10 @@ def evaluate(text):
     return 'error'
 
 
-def train():
+def train(topic_n=20):
 
     db_commits = data.get_db()
-    mdl = tp.LDAModel(k=TOPICS, seed=123)
+    mdl = tp.LDAModel(k=topic_n, seed=123)
 
     data_list = []
 
@@ -60,29 +63,31 @@ def train():
 
     for i in range(0, 100, 10):
         mdl.train(10)
-        print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+        # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
-    for k in range(mdl.k):
-        print('Top 10 words of topic #{}'.format(k))
-        print(mdl.get_topic_words(k, top_n=3))
+    # for k in range(mdl.k):
+    #     print('Top 10 words of topic #{}'.format(k))
+    #     print(mdl.get_topic_words(k, top_n=3))
 
-    mdl.summary()
+    # mdl.summary()
 
     for row in data_list:
 
         doc = mdl.docs[row['model_index']]
-        topics = doc.get_topics(top_n=TOPICS)
+        topics = doc.get_topics(top_n=topic_n)
         topics = sorted(topics, key=lambda item: item[0])
 
-        for t in range(TOPICS):
+        for t in range(topic_n):
             row['topic_{}'.format(t)] = topics[t][1]
 
     columns = ['id', 'feature', 'mapping', 'model_index']
-    columns.extend(['topic_{}'.format(t) for t in range(TOPICS)])
+    columns.extend(['topic_{}'.format(t) for t in range(topic_n)])
     mapping = pd.DataFrame(data_list, columns=columns)
 
     # print(res)
 
     mdl.save('{}.mdl'.format(FILE_NAME))
+
+    print('LDA ll per word \t{}'.format(mdl.ll_per_word))
 
     mapping.to_csv('{}.csv'.format(FILE_NAME))
