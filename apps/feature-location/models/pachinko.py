@@ -1,4 +1,4 @@
-from models.models import get_json, get_page
+from models.models import get_json, get_page, tomotopy_train
 import tomotopy as tp
 import pandas as pd
 import json
@@ -48,32 +48,8 @@ def evaluate(text):
 
 def train(topic_n_k1=20, topics_n_k2=20):
 
-    db_commits = data.get_db()
     mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, seed=123)
-
-    data_list = []
-
-    for document in db_commits.find(limit=1000).where('this.diff.length > 0'):
-        word_list = data.nltk_doc_filter(document)
-        if word_list:
-            idx = mdl.add_doc(word_list)
-            tmp = {
-                'id': str(document['_id']),
-                'feature': document['feature_id'],
-                'mapping': json.dumps(document['diff']),
-                'model_index': idx
-            }
-            data_list.append(tmp)
-
-    for i in range(0, 100, 10):
-        mdl.train(10)
-        # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
-
-    # for k in range(mdl.k2):
-    #     print('Top 10 words of topic #{}'.format(k))
-    #     print(mdl.get_topic_words(k, top_n=3))
-
-    # mdl.summary()
+    data_list = tomotopy_train(mdl)
 
     for row in data_list:
 
