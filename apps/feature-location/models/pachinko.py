@@ -53,7 +53,7 @@ def train(topic_n_k1=20, topics_n_k2=20):
 
     data_list = []
 
-    for document in db_commits.find(limit=1000):
+    for document in db_commits.find(limit=1000).where('this.diff.length > 0'):
         word_list = data.nltk_doc_filter(document)
         if word_list:
             idx = mdl.add_doc(word_list)
