@@ -33,19 +33,21 @@ def get_json(df, log_ll, top_n, classes, methods):
 
     for id, mapping in zip(df.id[0:top_n], df.mapping[0:top_n]):
         mapping = json.loads(mapping)
-        tmp = {'commit_id': id}
+        commit = {'commit_id': id, 'files': []}
 
         for item in mapping:
-            tmp['path'] = item['new_path'][1:]
+            file = {'path': item['new_path'][1:]}
 
             if methods:
-                tmp['methods'] = {}
+                file['methods'] = {}
                 for method in sorted(item['methods'], key=lambda x: item['methods'][x], reverse=True):
-                    tmp['methods'][method] = item['methods'][method]
+                    file['methods'][method] = item['methods'][method]
 
             if classes:
-                tmp['classes'] = item['classes']
+                file['classes'] = item['classes']
 
-        res['res'].append(tmp)
+            commit['files'].append(file)
+
+        res['res'].append(commit)
 
     return json.dumps(res, indent=4)
