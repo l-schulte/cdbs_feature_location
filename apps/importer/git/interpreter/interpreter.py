@@ -219,35 +219,36 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
     if extension in LANGUAGE_REGX:
         re_method_name = LANGUAGE_REGX[extension]['method_name']
         re_class_name = LANGUAGE_REGX[extension]['class_name']
+        brackets_open = LANGUAGE_REGX[extension]['brackets_open']
+        brackets_close = LANGUAGE_REGX[extension]['brackets_close']
     else:
         return {}, {}
 
-    classes_in_file = []
+    methods_changed = __interpret_changed_methods(lines, re_method_name)
+    classes_in_file = __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_close)
+
+    return methods_changed, classes_in_file
+
+
+def __interpret_changed_methods(lines, re_method_name):
+
+    methods_changed = {'unknown': 0}
     method_name = None
     method_indentation = None
-    methods_changed = {'unknown': 0}
 
     for line in lines:
 
         if line == '' or re.search(r'^[\+|\-]$', line):
             continue
 
-        re_res_class_name = None
-        if re_class_name:
-            re_res_class_name = re.search(re_class_name, line)
-        if re_res_class_name is not None:
-            class_name = re_res_class_name.group(3)
-            classes_in_file.append(class_name)
-            continue
-
-        re_res_unknown_changed = None
+        re_res_method_changed = None
         if re_method_name:
-            re_res_unknown_changed = re.search(re_method_name, line)
-        if re_res_unknown_changed is not None:
+            re_res_method_changed = re.search(re_method_name, line)
+        if re_res_method_changed is not None:
 
-            changed = re_res_unknown_changed.group(1) != ' '
-            method_indentation = re_res_unknown_changed.group(2)
-            method_name = re_res_unknown_changed.group(3)
+            changed = re_res_method_changed.group(1) != ' '
+            method_indentation = re_res_method_changed.group(2)
+            method_name = re_res_method_changed.group(3)
 
             if changed:
                 methods_changed[method_name] = 1
@@ -272,4 +273,40 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
 
             continue
 
-    return methods_changed, classes_in_file
+    return methods_changed
+
+
+def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_close):
+
+    classes_changed = {'unknown': 0}
+    class_name = 'unknown'
+    brackets_count = 0
+
+    for line in lines:
+
+        if line == '' or re.search(r'^[\+|\-]$', line):
+            continue
+
+        re_res_class_name = None
+        if re_class_name and brackets_count == 0:
+            re_res_class_name = re.search(re_class_name, line)
+        if re_res_class_name is not None:
+            changed = re_res_class_name.group(1) != ' '
+            class_name = re_res_class_name.group(3)
+
+            if changed:
+                classes_changed[class_name] = 1
+            else:
+                classes_changed[class_name] = 0
+
+            brackets_count = line.count(brackets_open) - line.count(brackets_close)
+
+            continue
+
+        brackets_count += line.count(brackets_open) - line.count(brackets_close)
+        change_inside = re.search(r'^(\+|\-| )', line)
+        if change_inside is not None and change_inside.group(1) != ' ':
+            classes_changed[class_name] += 1
+            continue
+
+    return classes_changed
