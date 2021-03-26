@@ -1,6 +1,7 @@
 from copy import Error
 import re
 from datetime import datetime
+from vcs.jira.jira import get_feature_id
 import progressbar
 
 from git.interpreter import LANGUAGE_REGX
@@ -29,20 +30,23 @@ def log(log):
     """
 
     commits = []
+    changes = []
 
     line_buffer = []
     for line in progressbar.progressbar(log):
 
         if re.search(r'^commit .+', line) and not line_buffer == []:
 
-            commit, commit_id, date = __interpret_commit(line_buffer)
+            commit = __interpret_commit(line_buffer)
             commits.append(commit)
+
+            changes.extend(__interpret_changes(line_buffer, commit['commit_id'], commit['comment']))
 
             line_buffer = []
 
         line_buffer.append(line)
 
-    return commits
+    return commits, changes
 
 
 def __interpret_commit(lines):
@@ -83,7 +87,39 @@ def __interpret_commit(lines):
         'email': email,
         'date': date,
         'comment': comment
-    }, id, date
+    }
+
+
+def __interpret_changes(lines, commit_id, comment):
+    """Extract data from change lines using regex.
+    """
+
+    changes = []
+
+    for line in lines[4:]:
+
+        rline = re.search(r'^\d+\s+\d+\s+(.+)', line)
+        if rline:
+
+            path_change = re.search(r'(.*){(.*) => (.*)}(.*)', rline.group(1))
+
+            if path_change:
+                path = (path_change.group(1)
+                        + path_change.group(3) + path_change.group(4)).replace('//', '/')
+                old_path = (path_change.group(1)
+                            + path_change.group(2) + path_change.group(4)).replace('//', '/')
+            else:
+                path = rline.group(1)
+                old_path = rline.group(1)
+
+            changes.append({
+                'commit_id': commit_id,
+                'feature_id': get_feature_id(comment),
+                'path': path,
+                'old_path': old_path
+            })
+
+    return changes
 
 
 def crawl_diff(diff):
@@ -91,7 +127,7 @@ def crawl_diff(diff):
 
     """
 
-    changes = []
+    changes = {}
 
     old_path = None
     new_path = None
@@ -108,12 +144,11 @@ def crawl_diff(diff):
 
                     methods, classes = _interpret_file_diff(line_buffer, extension)
 
-                    changes.append({
-                        'new_path': new_path,
-                        'old_path': old_path,
+                    changes[new_path[2:]] = {
+                        'old_path': old_path[2:],
                         'classes': classes,
                         'methods': methods
-                    })
+                    }
 
             old_path = None
             new_path = None

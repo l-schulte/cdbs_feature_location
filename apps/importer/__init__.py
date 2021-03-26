@@ -15,13 +15,15 @@ REPO = {
 }
 
 
-MONGODB_ADDR = 'db'
+MONGODB_ADDR = 'localhost'
 
 client = MongoClient('mongodb://%s:%s@%s' %
                      ('root', 'localdontuseglobal', MONGODB_ADDR))
 
 db = client.cdbs_fl_db
 db_commits = db.commits
+db_files = db.files
+db_features = db.features
 
 db_commits.create_index('date')
 

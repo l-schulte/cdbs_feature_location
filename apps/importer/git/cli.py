@@ -3,6 +3,10 @@ import subprocess
 
 from __init__ import b2s, REPO, WORKDIR
 
+from sys import platform
+
+shell = not platform == 'win32'
+
 
 def clone():
     """Clone the repository this instance is assigned to.
@@ -12,7 +16,7 @@ def clone():
     os.chdir('repos')
 
     command = 'git clone {}'.format(REPO['git-url'])
-    _ = subprocess.run(command, capture_output=True, shell=True)
+    _ = subprocess.run(command, capture_output=True, shell=shell)
 
     os.chdir(WORKDIR)
 
@@ -25,7 +29,7 @@ def checkout(commit_id):
     os.chdir('repos/{}'.format(REPO['title']))
 
     command = 'git checkout {}'.format(commit_id)
-    res = subprocess.run(command, capture_output=True, shell=True)
+    res = subprocess.run(command, capture_output=True, shell=shell)
 
     os.chdir(WORKDIR)
 
@@ -41,7 +45,7 @@ def diff(commit_id, parameters=[]):
 
     parameters = ' '.join(parameters)
     command = 'git diff {}^ {} {}'.format(commit_id, commit_id, parameters)
-    res = subprocess.run(command, capture_output=True, shell=True)
+    res = subprocess.run(command, capture_output=True, shell=shell)
 
     os.chdir(WORKDIR)
 
@@ -56,7 +60,7 @@ def pull():
     os.chdir('repos/{}'.format(REPO['title']))
 
     command = 'git pull --all'
-    _ = subprocess.run(command, capture_output=True, shell=True)
+    _ = subprocess.run(command, capture_output=True, shell=shell)
 
     os.chdir(WORKDIR)
 
@@ -70,7 +74,7 @@ def log():
 
     command = 'git log --numstat --no-merges --date=unix --after={} --before={}'.format(REPO['after'], REPO['before'])
     print(command)
-    res = subprocess.run(command, capture_output=True, shell=True)
+    res = subprocess.run(command, capture_output=True, shell=shell)
 
     os.chdir(WORKDIR)
 
@@ -85,7 +89,7 @@ def show(commit_id, path):
     os.chdir('repos/{}'.format(REPO['title']))
 
     command = 'git show {}:{}'.format(commit_id, path)
-    res = subprocess.run(command, capture_output=True, shell=True)
+    res = subprocess.run(command, capture_output=True, shell=shell)
 
     os.chdir(WORKDIR)
 
