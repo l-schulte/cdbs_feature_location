@@ -1,6 +1,5 @@
 import argparse
 import os
-import json
 import progressbar
 from models import lda, pachinko
 from data import data

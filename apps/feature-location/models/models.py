@@ -1,20 +1,35 @@
 import json
-from data import data
+from typing import List
+from data import data, get_db_features, get_db_files
 
 
-def tomotopy_train(mdl) -> list:
-    db_commits = data.get_db()
+def __get_word_list(features, file):
+    word_list = []
+
+    for feature_id in file['feature_ids']:
+        if feature_id in features:
+            word_list.extend(features[feature_id])
+
+    return word_list
+
+
+def tomotopy_train(mdl) -> List[dict]:
+
+    features = get_db_features().find_one()
+    features = data.nltk_feature_filter(features)
 
     data_list = []
 
-    for document in db_commits.find(limit=1000).where('this.diff.length > 0'):
-        word_list = data.nltk_doc_filter(document)
+    for file in get_db_files().find():
+
+        word_list = __get_word_list(features, file)
+
         if word_list:
             idx = mdl.add_doc(word_list)
             tmp = {
-                'id': str(document['_id']),
-                'feature': document['feature_id'],
-                'mapping': json.dumps(document['diff']),
+                'id': str(file['_id']),
+                'features': file['feature_ids'],
+                'path': file['path'],
                 'model_index': idx
             }
             data_list.append(tmp)

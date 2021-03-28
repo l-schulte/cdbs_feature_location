@@ -10,20 +10,17 @@ nltk.download('punkt', quiet=True)
 stop_words = stopwords.words('english')
 
 
-def get_db():
-    from pymongo import MongoClient
+def nltk_feature_filter(features: dict):
 
-    MONGODB_ADDR = 'localhost'
+    for feature_id in features:
 
-    client = MongoClient('mongodb://%s:%s@%s' %
-                         ('root', 'localdontuseglobal', MONGODB_ADDR))
+        if feature_id == '_id':
+            continue
 
-    db = client.cdbs_fl_db
-    db_commits = db.commits
+        feature = features[feature_id]
+        feature['words'] = nltk_filter(feature['description'])
 
-    db_commits.create_index('date')
-
-    return db_commits
+    return features
 
 
 def nltk_doc_filter(doc):
@@ -36,7 +33,10 @@ def nltk_doc_filter(doc):
     return nltk_filter(text)
 
 
-def nltk_filter(text):
+def nltk_filter(text: str):
+
+    if not text:
+        return []
 
     text = text.lower()
 

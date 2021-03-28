@@ -66,7 +66,7 @@ def train(topic_n_k1=20, topics_n_k2=20):
         for t in range(topics_n_k2):
             row['sub_topic_{}'.format(t)] = sub_topics[t][1]
 
-    columns = ['id', 'feature', 'mapping', 'model_index']
+    columns = list(row.keys())
     columns.extend(['topic_{}'.format(t) for t in range(topic_n_k1)])
     columns.extend(['sub_topic_{}'.format(t) for t in range(topics_n_k2)])
     mapping = pd.DataFrame(data_list, columns=columns)

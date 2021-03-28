@@ -53,7 +53,7 @@ def train(topic_n=20):
         for t in range(topic_n):
             row['topic_{}'.format(t)] = topics[t][1]
 
-    columns = ['id', 'feature', 'mapping', 'model_index']
+    columns = list(row.keys())
     columns.extend(['topic_{}'.format(t) for t in range(topic_n)])
     mapping = pd.DataFrame(data_list, columns=columns)
 
