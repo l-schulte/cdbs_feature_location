@@ -20,7 +20,7 @@ def interpret(results, top_n=10, classes=False, methods=False, json=False):
     if json:
         return get_json(sorted_df, log_ll, top_n, classes, methods)
 
-    print('log_ll = {}'.format(log_ll))
+    # print('log_ll = {}'.format(log_ll))
     return get_page(sorted_df, top_n, classes, methods)
 
 
