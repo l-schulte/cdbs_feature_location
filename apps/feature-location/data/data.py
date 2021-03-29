@@ -1,3 +1,5 @@
+from typing import List
+from data import get_db_files
 import nltk
 import json
 import os
@@ -8,6 +10,50 @@ nltk.download('stopwords', quiet=True)
 nltk.download('punkt', quiet=True)
 
 stop_words = stopwords.words('english')
+
+
+class Document:
+    _id: str
+    name: str
+    path: str
+    feature_ids: List[str]
+
+    def __init__(self, _id, name: str, path: str, feature_ids: List[str]):
+        self._id = _id
+        self.name = name
+        self.path = path
+        self.feature_ids = feature_ids
+
+
+def get_documents(type) -> List[Document]:
+
+    documents = []
+    if type == 'file':
+        for file in get_db_files().find():
+            name = file['path'].split('/')[-1].split('.')[0]
+            documents.append(Document(str(file['_id']), name, file['path'], file['feature_ids']))
+        return documents
+
+    if type == 'class':
+        for file in get_db_files().find():
+            classes = {}
+            if 'changes' in file:
+                for change in file['changes']:
+                    if 'diff' in change and 'classes' in change['diff']:
+                        for class_name in change['diff']['classes']:
+                            if class_name == 'unknown' or change['diff']['classes'][class_name] == 0:
+                                continue
+                            if class_name not in classes:
+                                tmp = set()
+                                tmp.add(change['feature_id'])
+                                classes[class_name] = tmp
+                            else:
+                                classes[class_name].add(change['feature_id'])
+            for class_name in classes:
+                feature_ids = classes[class_name]
+                path = '{} -> {}'.format(file['path'], class_name)
+                documents.append(Document(file['_id'], class_name, path, feature_ids))
+        return documents
 
 
 def nltk_feature_filter(features: dict):
@@ -59,7 +105,7 @@ def read_goldsets(path):
 
         goldsets.append({
             'file': filename,
-            'classes': [line.split('.')[-1] for line in lines]
+            'classes': [line.split('.')[-1].replace('\n', '') for line in lines]
         })
 
     return goldsets

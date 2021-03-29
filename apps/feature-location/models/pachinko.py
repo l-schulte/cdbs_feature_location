@@ -1,7 +1,6 @@
 from models.models import get_json, get_page, tomotopy_train
 import tomotopy as tp
 import pandas as pd
-import json
 
 from data import data
 
@@ -18,10 +17,18 @@ def interpret(results, top_n=10, classes=False, methods=False, json=False):
     max_value_sub = max(sub_topics_prob)
     max_index_sub = sub_topics_prob.tolist().index(max_value_sub)
 
+    # print('\n')
+    # print(max_index_super)
+    # print(max_value_super)
+    # print(max_index_sub)
+    # print(max_value_sub)
+
     df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
     df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['sub_topic_{}'.format(max_index_sub)]) / 2
-    sorted_df = df.sort_values(by='most_likely')
+    sorted_df = df.sort_values(by='most_likely', ascending=False)
+
+    # print(sorted_df)
 
     if json:
         return get_json(sorted_df, log_ll, top_n, classes, methods)
@@ -46,10 +53,10 @@ def evaluate(text):
     return 'error'
 
 
-def train(topic_n_k1=20, topics_n_k2=20):
+def train(documents, features, topic_n_k1=20, topics_n_k2=20):
 
     mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, seed=123)
-    data_list = tomotopy_train(mdl)
+    data_list = tomotopy_train(mdl, documents, features)
 
     for row in data_list:
 
@@ -66,7 +73,7 @@ def train(topic_n_k1=20, topics_n_k2=20):
         for t in range(topics_n_k2):
             row['sub_topic_{}'.format(t)] = sub_topics[t][1]
 
-    columns = list(row.keys())
+    columns = list(data_list[0].keys())
     columns.extend(['topic_{}'.format(t) for t in range(topic_n_k1)])
     columns.extend(['sub_topic_{}'.format(t) for t in range(topics_n_k2)])
     mapping = pd.DataFrame(data_list, columns=columns)

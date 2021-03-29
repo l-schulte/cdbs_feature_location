@@ -3,33 +3,31 @@ from typing import List
 from data import data, get_db_features, get_db_files
 
 
-def __get_word_list(features, file):
+def __get_word_list(features, document: data.Document):
     word_list = []
 
-    for feature_id in file['feature_ids']:
+    for feature_id in document.feature_ids:
         if feature_id in features:
-            word_list.extend(features[feature_id])
+            word_list.extend(features[feature_id]['words'])
 
     return word_list
 
 
-def tomotopy_train(mdl) -> List[dict]:
-
-    features = get_db_features().find_one()
-    features = data.nltk_feature_filter(features)
+def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
 
     data_list = []
 
-    for file in get_db_files().find():
+    for document in documents:
 
-        word_list = __get_word_list(features, file)
+        word_list = __get_word_list(features, document)
 
         if word_list:
             idx = mdl.add_doc(word_list)
             tmp = {
-                'id': str(file['_id']),
-                'features': file['feature_ids'],
-                'path': file['path'],
+                'id': document._id,
+                'features': document.feature_ids,
+                'name': document.name,
+                'path': document.path,
                 'model_index': idx
             }
             data_list.append(tmp)
@@ -65,7 +63,7 @@ def get_json(df, log_ll, top_n, classes, methods):
 
     res = {'log_ll': log_ll, 'res': []}
 
-    for id, path in zip(df.id[0:top_n], df.path[0:top_n]):
-        res['res'].append({'_id': id, 'path': path})
+    for id, path, name in zip(df.id[0:top_n], df.path[0:top_n], df.name[0:top_n]):
+        res['res'].append({'_id': id, 'path': path, 'name': name})
 
-    return json.dumps(res, indent=4)
+    return json.dumps(res, indent=4, sort_keys=False)

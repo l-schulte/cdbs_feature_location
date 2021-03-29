@@ -15,7 +15,7 @@ def interpret(results, top_n=10, classes=False, methods=False, json=False):
 
     df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
-    sorted_df = df.sort_values(by='topic_{}'.format(max_index))
+    sorted_df = df.sort_values(by='topic_{}'.format(max_index), ascending=False)
 
     if json:
         return get_json(sorted_df, log_ll, top_n, classes, methods)
@@ -38,11 +38,11 @@ def evaluate(text):
     return 'error'
 
 
-def train(topic_n=20):
+def train(documents, features, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123)
 
-    data_list = tomotopy_train(mdl)
+    data_list = tomotopy_train(mdl, documents, features)
 
     for row in data_list:
 
@@ -53,7 +53,7 @@ def train(topic_n=20):
         for t in range(topic_n):
             row['topic_{}'.format(t)] = topics[t][1]
 
-    columns = list(row.keys())
+    columns = list(data_list[0].keys())
     columns.extend(['topic_{}'.format(t) for t in range(topic_n)])
     mapping = pd.DataFrame(data_list, columns=columns)
 

@@ -2,7 +2,7 @@ import argparse
 import os
 import progressbar
 from models import lda, pachinko
-from data import data
+from data import data, get_db_features, get_db_files
 from validation import mean_reciprocal_rank as MRR
 
 
@@ -46,11 +46,19 @@ def eval(args):
 
 
 def train(args):
+
+    documents = data.get_documents(args.base)
+
+    print(len(documents))
+
+    features = get_db_features().find_one()
+    features = data.nltk_feature_filter(features)
+
     if 'lda' in args.train:
-        lda.train(args.lda_k1)
+        lda.train(documents, features, args.lda_k1)
 
     if 'pa' in args.train:
-        pachinko.train(args.pa_k1, args.pa_k2)
+        pachinko.train(documents, features, args.pa_k1, args.pa_k2)
 
 
 def validate(args):
@@ -81,6 +89,7 @@ def main():
     parser.add_argument('--lda_k1', help='number of topics for lda', default=20, type=int)
     parser.add_argument('--pa_k1', help='number of topics for pa', default=20, type=int)
     parser.add_argument('--pa_k2', help='number of subtopics for pa', default=20, type=int)
+    parser.add_argument('-b', '--base', help='file or class based', choices=['file', 'class'], default='file', type=str)
 
     # - eval
     parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
