@@ -7,16 +7,20 @@ from data import data
 FILE_NAME = 'lda'
 
 
-def interpret(results, top_n=10, classes=False, methods=False, json=False):
+def interpret(results, top_n=10, classes=False, methods=False, json=False, filename='x'):
 
     result, log_ll = results
-    max_value = max(result)
-    max_index = result.tolist().index(max_value)
 
     df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
-    sorted_df = df.sort_values(by='topic_{}'.format(max_index), ascending=False)
+    df['most_likely'] = sum([abs(df['topic_{}'.format(i)] - ri) for i, ri in enumerate(result)]) / len(result)
 
+    sorted_df = df.sort_values(by='most_likely', ascending=False)
+
+    # sorted_df.to_csv('{}_{}_result.csv'.format(FILE_NAME, filename))
+
+    # sorted_df = df.sort_values(by='topic_{}'.format(max_index), ascending=False)
+    # exit()
     if json:
         return get_json(sorted_df, log_ll, top_n, classes, methods)
 

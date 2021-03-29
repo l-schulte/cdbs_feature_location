@@ -36,7 +36,7 @@ def eval(args):
 
         if 'lda' in args.eval:
             tmp = lda.evaluate(query)
-            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods, args.json)
+            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods, args.json, filename)
             save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'lda', filename), res_lda)
 
         if 'pa' in args.eval:
