@@ -19,7 +19,7 @@ def get_db():
                          ('root', 'localdontuseglobal', MONGODB_ADDR))
 
     db = client.cdbs_fl_db
-    db_commits = db.commits
+    db_commits = db.commits_old
 
     db_commits.create_index('date')
 
