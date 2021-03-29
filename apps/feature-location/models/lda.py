@@ -41,6 +41,7 @@ def evaluate(text):
 def train(documents, features, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123)
+    mdl.burn_in = 100
 
     data_list = tomotopy_train(mdl, documents, features)
 

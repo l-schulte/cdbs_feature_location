@@ -32,9 +32,8 @@ def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
             }
             data_list.append(tmp)
 
-    for i in range(0, 100, 10):
-        mdl.train(10)
-        # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+    mdl.train(1000)
+    # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
     # for k in range(mdl.k2):
     #     print('Top 10 words of topic #{}'.format(k))
