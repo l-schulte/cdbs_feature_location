@@ -1,6 +1,7 @@
 from copy import Error
 import re
 from datetime import datetime
+from vcs.jira.jira import get_feature_id
 import progressbar
 
 from git.interpreter import LANGUAGE_REGX
@@ -29,20 +30,23 @@ def log(log):
     """
 
     commits = []
+    changes = []
 
     line_buffer = []
     for line in progressbar.progressbar(log):
 
         if re.search(r'^commit .+', line) and not line_buffer == []:
 
-            commit, commit_id, date = __interpret_commit(line_buffer)
+            commit = __interpret_commit(line_buffer)
             commits.append(commit)
+
+            changes.extend(__interpret_changes(line_buffer, commit['commit_id'], commit['comment']))
 
             line_buffer = []
 
         line_buffer.append(line)
 
-    return commits
+    return commits, changes
 
 
 def __interpret_commit(lines):
@@ -83,7 +87,39 @@ def __interpret_commit(lines):
         'email': email,
         'date': date,
         'comment': comment
-    }, id, date
+    }
+
+
+def __interpret_changes(lines, commit_id, comment):
+    """Extract data from change lines using regex.
+    """
+
+    changes = []
+
+    for line in lines[4:]:
+
+        rline = re.search(r'^\d+\s+\d+\s+(.+)', line)
+        if rline:
+
+            path_change = re.search(r'(.*){(.*) => (.*)}(.*)', rline.group(1))
+
+            if path_change:
+                path = (path_change.group(1)
+                        + path_change.group(3) + path_change.group(4)).replace('//', '/')
+                old_path = (path_change.group(1)
+                            + path_change.group(2) + path_change.group(4)).replace('//', '/')
+            else:
+                path = rline.group(1)
+                old_path = rline.group(1)
+
+            changes.append({
+                'commit_id': commit_id,
+                'feature_id': get_feature_id(comment),
+                'path': path,
+                'old_path': old_path
+            })
+
+    return changes
 
 
 def crawl_diff(diff):
@@ -91,7 +127,7 @@ def crawl_diff(diff):
 
     """
 
-    changes = []
+    changes = {}
 
     old_path = None
     new_path = None
@@ -108,12 +144,11 @@ def crawl_diff(diff):
 
                     methods, classes = _interpret_file_diff(line_buffer, extension)
 
-                    changes.append({
-                        'new_path': new_path,
-                        'old_path': old_path,
+                    changes[new_path[2:]] = {
+                        'old_path': old_path[2:],
                         'classes': classes,
                         'methods': methods
-                    })
+                    }
 
             old_path = None
             new_path = None
@@ -184,35 +219,36 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
     if extension in LANGUAGE_REGX:
         re_method_name = LANGUAGE_REGX[extension]['method_name']
         re_class_name = LANGUAGE_REGX[extension]['class_name']
+        brackets_open = LANGUAGE_REGX[extension]['brackets_open']
+        brackets_close = LANGUAGE_REGX[extension]['brackets_close']
     else:
         return {}, {}
 
-    classes_in_file = []
+    methods_changed = __interpret_changed_methods(lines, re_method_name)
+    classes_in_file = __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_close)
+
+    return methods_changed, classes_in_file
+
+
+def __interpret_changed_methods(lines, re_method_name):
+
+    methods_changed = {'unknown': 0}
     method_name = None
     method_indentation = None
-    methods_changed = {'unknown': 0}
 
     for line in lines:
 
         if line == '' or re.search(r'^[\+|\-]$', line):
             continue
 
-        re_res_class_name = None
-        if re_class_name:
-            re_res_class_name = re.search(re_class_name, line)
-        if re_res_class_name is not None:
-            class_name = re_res_class_name.group(3)
-            classes_in_file.append(class_name)
-            continue
-
-        re_res_unknown_changed = None
+        re_res_method_changed = None
         if re_method_name:
-            re_res_unknown_changed = re.search(re_method_name, line)
-        if re_res_unknown_changed is not None:
+            re_res_method_changed = re.search(re_method_name, line)
+        if re_res_method_changed is not None:
 
-            changed = re_res_unknown_changed.group(1) != ' '
-            method_indentation = re_res_unknown_changed.group(2)
-            method_name = re_res_unknown_changed.group(3)
+            changed = re_res_method_changed.group(1) != ' '
+            method_indentation = re_res_method_changed.group(2)
+            method_name = re_res_method_changed.group(3)
 
             if changed:
                 methods_changed[method_name] = 1
@@ -237,4 +273,40 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
 
             continue
 
-    return methods_changed, classes_in_file
+    return methods_changed
+
+
+def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_close):
+
+    classes_changed = {'unknown': 0}
+    class_name = 'unknown'
+    brackets_count = 0
+
+    for line in lines:
+
+        if line == '' or re.search(r'^[\+|\-]$', line):
+            continue
+
+        re_res_class_name = None
+        if re_class_name and brackets_count == 0:
+            re_res_class_name = re.search(re_class_name, line)
+        if re_res_class_name is not None:
+            changed = re_res_class_name.group(1) != ' '
+            class_name = re_res_class_name.group(3)
+
+            if changed:
+                classes_changed[class_name] = 1
+            else:
+                classes_changed[class_name] = 0
+
+            brackets_count = line.count(brackets_open) - line.count(brackets_close)
+
+            continue
+
+        brackets_count += line.count(brackets_open) - line.count(brackets_close)
+        change_inside = re.search(r'^(\+|\-| )', line)
+        if change_inside is not None and change_inside.group(1) != ' ':
+            classes_changed[class_name] += 1
+            continue
+
+    return classes_changed

@@ -1,3 +1,5 @@
+from typing import List
+from data import get_db_files
 import nltk
 import json
 import os
@@ -10,20 +12,61 @@ nltk.download('punkt', quiet=True)
 stop_words = stopwords.words('english')
 
 
-def get_db():
-    from pymongo import MongoClient
+class Document:
+    _id: str
+    name: str
+    path: str
+    feature_ids: List[str]
 
-    MONGODB_ADDR = 'localhost'
+    def __init__(self, _id, name: str, path: str, feature_ids: List[str]):
+        self._id = _id
+        self.name = name
+        self.path = path
+        self.feature_ids = feature_ids
 
-    client = MongoClient('mongodb://%s:%s@%s' %
-                         ('root', 'localdontuseglobal', MONGODB_ADDR))
 
-    db = client.cdbs_fl_db
-    db_commits = db.commits
+def get_documents(type) -> List[Document]:
 
-    db_commits.create_index('date')
+    documents = []
+    if type == 'file':
+        for file in get_db_files().find():
+            name = file['path'].split('/')[-1].split('.')[0]
+            documents.append(Document(str(file['_id']), name, file['path'], file['feature_ids']))
+        return documents
 
-    return db_commits
+    if type == 'class':
+        for file in get_db_files().find():
+            classes = {}
+            if 'changes' in file:
+                for change in file['changes']:
+                    if 'diff' in change and 'classes' in change['diff']:
+                        for class_name in change['diff']['classes']:
+                            if class_name == 'unknown' or change['diff']['classes'][class_name] == 0:
+                                continue
+                            if class_name not in classes:
+                                tmp = set()
+                                tmp.add(change['feature_id'])
+                                classes[class_name] = tmp
+                            else:
+                                classes[class_name].add(change['feature_id'])
+            for class_name in classes:
+                feature_ids = classes[class_name]
+                path = '{} -> {}'.format(file['path'], class_name)
+                documents.append(Document(file['_id'], class_name, path, feature_ids))
+        return documents
+
+
+def nltk_feature_filter(features: dict):
+
+    for feature_id in features:
+
+        if feature_id == '_id':
+            continue
+
+        feature = features[feature_id]
+        feature['words'] = nltk_filter(feature['description'])
+
+    return features
 
 
 def nltk_doc_filter(doc):
@@ -36,7 +79,10 @@ def nltk_doc_filter(doc):
     return nltk_filter(text)
 
 
-def nltk_filter(text):
+def nltk_filter(text: str):
+
+    if not text:
+        return []
 
     text = text.lower()
 
@@ -59,7 +105,7 @@ def read_goldsets(path):
 
         goldsets.append({
             'file': filename,
-            'classes': [line.split('.')[-1] for line in lines]
+            'classes': [line.split('.')[-1].replace('\n', '') for line in lines]
         })
 
     return goldsets

@@ -14,6 +14,13 @@ def __get_session(jira_base_url):
     return session
 
 
+def get_feature_id(comment):
+    res = re.search(r'^\s*(\w+-\d+)\D', comment)
+    if res:
+        return res.group(1)
+    return None
+
+
 def get_features(commits):
     """Get associated feature per commit.
 
@@ -21,19 +28,22 @@ def get_features(commits):
 
     """
 
+    feature_ids = set()
+
+    for commit in commits:
+        feature_id = get_feature_id(commit['comment'])
+        if feature_id:
+            feature_ids.add(feature_id)
+
     jira_base_url = REPO['jira-url']
+
+    features = {}
 
     session = __get_session(jira_base_url)
 
-    for commit in progressbar.progressbar(commits):
+    for feature_id in progressbar.progressbar(feature_ids):
 
-        res = re.search(r'^\s*(\w+-\d+)\D', commit['comment'])
-        if res:
-            commit['feature_id'] = res.group(1)
-        else:
-            continue
-
-        jira_issue_url = '{}/rest/api/2/issue/{}'.format(jira_base_url, commit['feature_id'])
+        jira_issue_url = '{}/rest/api/2/issue/{}'.format(jira_base_url, feature_id)
 
         response = session.get(jira_issue_url)
 
@@ -43,11 +53,11 @@ def get_features(commits):
         data = response.json()
 
         if 'fields' in data and 'description' in data['fields'] and 'issuetype' in data['fields']:
-            commit['feature'] = {
+            features[feature_id] = {
                 'description': data['fields']['description'],
                 'type': data['fields']['issuetype']
             }
         else:
             print('No data for url: {}'.format(jira_issue_url))
 
-    return commits
+    return features
