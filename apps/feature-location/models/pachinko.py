@@ -21,7 +21,7 @@ def interpret(results, top_n=10, classes=False, methods=False, json=False):
     df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
     df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['sub_topic_{}'.format(max_index_sub)]) / 2
-    sorted_df = df.sort_values(by='most_likely')
+    sorted_df = df.sort_values(by='most_likely', ascending=False)
 
     if json:
         return get_json(sorted_df, log_ll, top_n, classes, methods)
@@ -50,7 +50,7 @@ def train(topic_n_k1=20, topics_n_k2=20):
 
     db_commits = data.get_db()
     mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, seed=123)
-
+    mdl.burn_in = 100
     data_list = []
 
     for document in db_commits.find(limit=1000).where('this.diff.length > 0'):
@@ -65,7 +65,7 @@ def train(topic_n_k1=20, topics_n_k2=20):
             }
             data_list.append(tmp)
 
-    for i in range(0, 100, 10):
+    for i in range(0, 1000, 10):
         mdl.train(10)
         # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
