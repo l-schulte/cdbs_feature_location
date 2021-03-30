@@ -88,3 +88,5 @@ def train(documents, features, topic_n_k1=20, topics_n_k2=20):
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
 
     mapping.to_csv('{}.csv'.format(FILE_NAME))
+
+    return {FILE_NAME: mdl.ll_per_word}
