@@ -152,21 +152,19 @@ def optimize_training():
     args.validate = None
     args.base = 'class'
 
-    for max_k in range(50, 300, 50):
+    for k1 in range(10, 300, 10):
+        args.pa_k1 = k1
+        for k2 in range(10, 300, 10):
+            args.pa_k2 = k2
 
-        for k1 in range(10, 300):
-            args.pa_k1 = k1
-            for k2 in range(max_k - 50 + 10, max_k):
-                args.pa_k2 = k2
+            print('k1: {} \t k2: \t{}'.format(k1, k2))
 
-                print('k1: {} \t k2: \t{}'.format(k1, k2))
+            results.append({'k1': k1, 'k2': k2, 'result': execute(args)})
 
-                results.append({'k1': k1, 'k2': k2, 'result': execute(args)})
+            if save_cnt % 50 == 0:
+                json.dump(results, open('optimize_dump.json', 'w'), indent=4)
 
-                if save_cnt % 50 == 0:
-                    json.dump(results, open('optimize_dump.json', 'w'), indent=4)
-
-                save_cnt += 1
+            save_cnt += 1
 
 
 if __name__ == "__main__":
