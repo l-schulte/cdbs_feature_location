@@ -1,3 +1,4 @@
 progressbar2
 pymongo
 requests
+dnspython

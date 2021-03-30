@@ -1,6 +1,6 @@
 import json
 from typing import List
-from data import data, get_db_features, get_db_files
+from data import data
 
 
 def __get_word_list(features, document: data.Document):
@@ -35,9 +35,14 @@ def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
     mdl.train(1000)
     # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
-    # for k in range(mdl.k2):
-    #     print('Top 10 words of topic #{}'.format(k))
-    #     print(mdl.get_topic_words(k, top_n=3))
+    # if hasattr(mdl, 'k'):
+    #     k = mdl.k
+    # if hasattr(mdl, 'k2'):
+    #     k = mdl.k2
+
+    # for k in range(k):
+    #     print('Top 5 words of topic #{}'.format(k))
+    #     print(mdl.get_topic_words(k, top_n=5))
 
     # mdl.summary()
 

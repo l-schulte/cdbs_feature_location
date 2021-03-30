@@ -2,7 +2,7 @@ import argparse
 import os
 import progressbar
 from models import lda, pachinko
-from data import data, get_db_features, get_db_files
+from data import data, get_db_features
 from validation import mean_reciprocal_rank as MRR
 
 
