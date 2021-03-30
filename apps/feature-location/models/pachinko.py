@@ -7,34 +7,34 @@ from data import data
 FILE_NAME = 'pa'
 
 
-def interpret(results, top_n=10, classes=False, methods=False, json=False):
+def interpret(results, top_n, classes, methods, json, determination):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
-
-    # max_value_super = max(super_topics_prob)
-    # max_index_super = super_topics_prob.tolist().index(max_value_super)
-
-    # max_value_sub = max(sub_topics_prob)
-    # max_index_sub = sub_topics_prob.tolist().index(max_value_sub)
-
-    # print('\n')
-    # print(max_index_super)
-    # print(max_value_super)
-    # print(max_index_sub)
-    # print(max_value_sub)
-
     df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
-    df['most_likely_super'] = sum([abs(df['topic_{}'.format(i)] - ri)
-                                   for i, ri in enumerate(super_topics_prob)]) / len(super_topics_prob)
+    if determination == 'ml':
 
-    df['most_likely_sub'] = sum([abs(df['sub_topic_{}'.format(i)] - ri)
-                                 for i, ri in enumerate(sub_topics_prob)]) / len(sub_topics_prob)
+        max_value_super = max(super_topics_prob)
+        max_index_super = super_topics_prob.tolist().index(max_value_super)
 
-    df['most_likely'] = abs(df.most_likely_super - df.most_likely_sub) / 2
-    # df['most_likely'] = df['most_likely_sub']
+        max_value_sub = max(sub_topics_prob)
+        max_index_sub = sub_topics_prob.tolist().index(max_value_sub)
 
-    # df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['sub_topic_{}'.format(max_index_sub)]) / 2
+        df['most_likely'] = (df['topic_{}'.format(max_index_super)] + df['sub_topic_{}'.format(max_index_sub)]) / 2
+
+    elif determination == 'dist':
+
+        df['most_likely_super'] = sum([abs(df['topic_{}'.format(i)] - ri)
+                                       for i, ri in enumerate(super_topics_prob)]) / len(super_topics_prob)
+
+        df['most_likely_sub'] = sum([abs(df['sub_topic_{}'.format(i)] - ri)
+                                     for i, ri in enumerate(sub_topics_prob)]) / len(sub_topics_prob)
+
+        df['most_likely'] = abs(df.most_likely_super - df.most_likely_sub) / 2
+        # df['most_likely'] = df['most_likely_sub']
+
+    else:
+        raise Exception('missing determination method by parameter -d --determination = ml or dist')
 
     sorted_df = df.sort_values(by='most_likely', ascending=False)
 

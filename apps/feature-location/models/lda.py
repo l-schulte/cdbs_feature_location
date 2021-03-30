@@ -7,13 +7,21 @@ from data import data
 FILE_NAME = 'lda'
 
 
-def interpret(results, top_n=10, classes=False, methods=False, json=False, filename='x'):
+def interpret(results, top_n, classes, methods, json, determination):
 
     result, log_ll = results
-
     df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
-    df['most_likely'] = sum([abs(df['topic_{}'.format(i)] - ri) for i, ri in enumerate(result)]) / len(result)
+    if determination == 'ml':
+        max_value = max(result)
+        max_index = result.tolist().index(max_value)
+        df['most_likely'] = df['topic_{}'.format(max_index)]
+
+    elif determination == 'dist':
+        df['most_likely'] = sum([abs(df['topic_{}'.format(i)] - ri) for i, ri in enumerate(result)]) / len(result)
+
+    else:
+        raise Exception('missing determination method by parameter -d --determination = ml or dist')
 
     sorted_df = df.sort_values(by='most_likely', ascending=False)
 

@@ -36,12 +36,14 @@ def eval(args):
 
         if 'lda' in args.eval:
             tmp = lda.evaluate(query)
-            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods, args.json, filename)
+            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods,
+                                    args.json, args.determination)
             save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'lda', filename), res_lda)
 
         if 'pa' in args.eval:
             tmp = pachinko.evaluate(query)
-            res_pa = pachinko.interpret(tmp, args.pages, args.classes, args.methods, args.json)
+            res_pa = pachinko.interpret(tmp, args.pages, args.classes, args.methods,
+                                        args.json, args.determination)
             save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'pa', filename), res_pa)
 
 
@@ -98,6 +100,8 @@ def main():
     parser.add_argument('-m', '--methods', action='store_true', help='list methods')
     parser.add_argument('-c', '--classes', action='store_true', help='list classes')
     parser.add_argument('-p', '--pages', help='number of documents', default=10, type=int)
+    parser.add_argument('-d', '--determination', choices=['ml', 'dist'],
+                        help='method of determination which documents are simmilar', default='dist')
 
     # - validate
     parser.add_argument('-v', '--validate', nargs='+', choices=['lda', 'pa'], help='validate cluster')
