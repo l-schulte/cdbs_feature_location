@@ -144,27 +144,22 @@ def optimize_training():
 
     results = []
 
-    save_cnt = 0
-
     args = type('', (), {})()
     args.train = 'pa'
     args.eval = None
     args.validate = None
     args.base = 'class'
 
-    for k1 in range(10, 300, 10):
+    for k1 in range(10, 400, 50):
         args.pa_k1 = k1
-        for k2 in range(10, 300, 10):
+        for k2 in range(10, 400, 50):
             args.pa_k2 = k2
 
             print('k1: {} \t k2: \t{}'.format(k1, k2))
 
             results.append({'k1': k1, 'k2': k2, 'result': execute(args)})
 
-            if save_cnt % 50 == 0:
-                json.dump(results, open('optimize_dump.json', 'w'), indent=4)
-
-            save_cnt += 1
+            json.dump(results, open('optimize_dump.json', 'w'), indent=4)
 
 
 if __name__ == "__main__":

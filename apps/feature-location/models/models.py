@@ -16,6 +16,7 @@ def __get_word_list(features, document: data.Document):
 def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
 
     data_list = []
+    mdl.burn_in = 10
 
     for document in documents:
 
