@@ -15,9 +15,9 @@ for match in logs:
         'k1': match[0],
         'k2': match[1],
         'result': {
-            'train': {
-                'pa': float(match[2])
-            }
+            'train': [
+                {'pa': float(match[2])}
+            ]
         }
     })
 

@@ -166,7 +166,9 @@ def optimize_training():
 
             save_cnt += 1
 
+    json.dump(results, open('optimize_dump.json', 'w'), indent=4)
+
 
 if __name__ == "__main__":
-    # execute()
-    optimize_training()
+    execute()
+    # optimize_training()
