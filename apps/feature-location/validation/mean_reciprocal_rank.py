@@ -10,7 +10,12 @@ def get_rank(goldset, documents):
 
 def calculate(goldsets, results):
 
-    # print('len res {}'.format(len(results)))
+    goldsets.extend(goldsets)
+    # results = results[:80]
+
     # print(1/len(results) * sum([get_rank(g, r['documents']) for g, r in zip(goldsets, results)]))
+
+    # for g, r in zip(goldsets, results):
+    #     print('{} - {}'.format(g['file'], r['file']))
 
     return 1/len(results) * sum([(get_rank(g, r['documents']['res'])) for g, r in zip(goldsets, results)])

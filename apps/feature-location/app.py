@@ -36,15 +36,14 @@ def evaluate(args):
     for filename, query in progressbar.progressbar(zip(filenames, queries)):
 
         if 'lda' in args.eval:
-            tmp = lda.evaluate(query)
-            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods,
-                                    args.json, args.determination)
+            tmp = lda.evaluate(query, args.lda_k1)
+            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods, args.determination, args.lda_k1)
             save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'lda', filename), res_lda)
 
         if 'pa' in args.eval:
-            tmp = pachinko.evaluate(query)
+            tmp = pachinko.evaluate(query, args.pa_k1, args.pa_k2)
             res_pa = pachinko.interpret(tmp, args.pages, args.classes, args.methods,
-                                        args.json, args.determination)
+                                        args.determination, args.pa_k1, args.pa_k2)
             save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'pa', filename), res_pa)
 
 

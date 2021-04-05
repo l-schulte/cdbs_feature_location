@@ -7,10 +7,13 @@ from data import data
 FILE_NAME = 'lda'
 
 
-def interpret(results, top_n, classes, methods, json, determination):
+def interpret(results, top_n, classes, methods, determination, k1):
 
     result, log_ll = results
-    df = pd.read_csv('{}.csv'.format(FILE_NAME))
+    if k1:
+        df = pd.read_csv('{}_{}.csv'.format(FILE_NAME, k1))
+    else:
+        df = pd.read_csv('{}.csv'.format(FILE_NAME, k1))
 
     if determination == 'ml':
         max_value = max(result)
@@ -28,13 +31,14 @@ def interpret(results, top_n, classes, methods, json, determination):
     return get_json(sorted_df, log_ll, top_n, classes, methods)
 
 
-def evaluate(text):
+def evaluate(text, k1):
 
     word_list = data.nltk_filter(text)
 
-    mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
-
-    print('ll_per_word: {}'.format(mdl.ll_per_word))
+    if k1:
+        mdl = tp.LDAModel().load('{}_{}.mdl'.format(FILE_NAME, k1))
+    else:
+        mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -64,9 +68,7 @@ def train(documents, features, topic_n=20):
 
     # print(res)
 
-    mdl.save('{}.mdl'.format(FILE_NAME))
-
-    print('LDA ll per word \t{}'.format(mdl.ll_per_word))
+    mdl.save('{}_k1{}.mdl'.format(FILE_NAME, topic_n))
 
     mapping.to_csv('{}.csv'.format(FILE_NAME))
 

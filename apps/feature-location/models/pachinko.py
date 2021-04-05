@@ -7,10 +7,14 @@ from data import data
 FILE_NAME = 'pa'
 
 
-def interpret(results, top_n, classes, methods, json, determination):
+def interpret(results, top_n, classes, methods, determination, k1, k2):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
-    df = pd.read_csv('{}.csv'.format(FILE_NAME))
+
+    if k1 and k2:
+        df = pd.read_csv('{}_{}_{}.csv'.format(FILE_NAME, k1, k2))
+    else:
+        df = pd.read_csv('{}.csv'.format(FILE_NAME))
 
     if determination == 'ml':
 
@@ -41,15 +45,16 @@ def interpret(results, top_n, classes, methods, json, determination):
     return get_json(sorted_df, log_ll, top_n, classes, methods)
 
 
-def evaluate(text):
+def evaluate(text, k1, k2):
 
     word_list = data.nltk_filter(text)
     # print('\nevaluating <{}> for pa...'.format(text))
     # print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
 
-    mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
-
-    print('ll_per_word: {}'.format(mdl.ll_per_word))
+    if k1 and k2:
+        mdl = tp.PAModel().load('{}_{}_{}.mdl'.format(FILE_NAME, k1, k2))
+    else:
+        mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -84,7 +89,7 @@ def train(documents, features, topic_n_k1=20, topics_n_k2=20):
 
     # print(res)
 
-    mdl.save('{}.mdl'.format(FILE_NAME))
+    mdl.save('{}_k1{}_k2{}.mdl'.format(FILE_NAME, topic_n_k1, topics_n_k2))
 
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
 
