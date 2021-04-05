@@ -49,6 +49,8 @@ def evaluate(text):
 
     mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
 
+    print('ll_per_word: {}'.format(mdl.ll_per_word))
+
     if word_list:
         doc = mdl.make_doc(word_list)
 

@@ -103,7 +103,7 @@ def execute(args=None):
         parser.add_argument('--pa_k1', help='number of topics for pa', default=20, type=int)
         parser.add_argument('--pa_k2', help='number of subtopics for pa', default=20, type=int)
         parser.add_argument('-b', '--base', help='file or class based',
-                            choices=['file', 'class'], default='file', type=str)
+                            choices=['file', 'class'], default='class', type=str)
 
         # - eval
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
@@ -111,7 +111,7 @@ def execute(args=None):
         parser.add_argument('-i', '--input', help='directory with text files interpretet as input')
         parser.add_argument('-m', '--methods', action='store_true', help='list methods')
         parser.add_argument('-c', '--classes', action='store_true', help='list classes')
-        parser.add_argument('-p', '--pages', help='number of documents', default=10, type=int)
+        parser.add_argument('-p', '--pages', help='number of documents', default=1000, type=int)
         parser.add_argument('-d', '--determination', choices=['ml', 'dist'],
                             help='method of determination which documents are simmilar', default='dist')
 

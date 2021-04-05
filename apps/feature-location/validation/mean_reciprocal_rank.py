@@ -1,11 +1,10 @@
 
 def get_rank(goldset, documents):
     for i, document in enumerate(documents, 0):
-        if any([c in document['name'] for c in goldset['classes']]):
+        if any([c in str(document['name']) for c in goldset['classes']]):
             # print(i+1)
             return 1/(i + 1)
 
-    print(goldset)
     return 0
 
 
