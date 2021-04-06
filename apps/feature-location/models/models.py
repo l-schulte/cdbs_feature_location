@@ -18,6 +18,8 @@ def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
     data_list = []
     mdl.burn_in = 10
 
+    # export = []
+
     for document in documents:
 
         word_list = __get_word_list(features, document)
@@ -32,6 +34,10 @@ def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
                 'model_index': idx
             }
             data_list.append(tmp)
+            # export.append(word_list)
+
+    # json.dump(export, open('export.json', 'w'))
+    # exit()
 
     mdl.train(1000)
     # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))

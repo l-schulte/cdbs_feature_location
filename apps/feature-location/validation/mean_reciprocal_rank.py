@@ -10,6 +10,8 @@ def get_rank(goldset, documents):
 
 def calculate(goldsets, results):
 
+    # nested k-fold cross vaidation
+
     goldsets.extend(goldsets)
     # results = results[:80]
 

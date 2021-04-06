@@ -68,8 +68,8 @@ def train(documents, features, topic_n=20):
 
     # print(res)
 
-    mdl.save('{}_k1{}.mdl'.format(FILE_NAME, topic_n))
+    mdl.save('{}_{}.mdl'.format(FILE_NAME, topic_n))
 
-    mapping.to_csv('{}.csv'.format(FILE_NAME))
+    mapping.to_csv('{}_{}.csv'.format(FILE_NAME, topic_n))
 
     return {FILE_NAME: mdl.ll_per_word}
