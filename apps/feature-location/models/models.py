@@ -50,8 +50,7 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         retrys = 0
         print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
-        if i % 100 == 0:
-            mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
+        mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
 
     return data_list
 
