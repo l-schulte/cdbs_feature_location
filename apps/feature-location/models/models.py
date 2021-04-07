@@ -1,4 +1,5 @@
 import json
+import math
 from typing import List
 from data import data
 
@@ -34,9 +35,21 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
             data_list.append(tmp)
 
     iterations = 1000
-    for i in range(10, iterations, 10):
+    steps = 10
+    retrys = 0
+    max_retrys = 5
+    for i in range(10, iterations, steps):
         mdl.train(10)
+
+        if math.isnan(mdl.ll_per_word) and retrys < max_retrys:
+            i -= steps
+            mdl = mdl.load('tmp/{}_i{}.mdl'.format(file_prefix, i))
+            retrys += 1
+            print('v Iteration: {}\t Retry: {}/{}'.format(i, retrys, max_retrys))
+
+        retrys = 0
         print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+
         if i % 100 == 0:
             mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
 
