@@ -52,7 +52,9 @@ def train(documents, features, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
 
-    data_list = tomotopy_train(mdl, documents, features)
+    file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
+
+    data_list = tomotopy_train(mdl, documents, features, file_prefix)
 
     for row in data_list:
 
@@ -68,8 +70,8 @@ def train(documents, features, topic_n=20):
 
     # print(res)
 
-    mdl.save('{}_{}.mdl'.format(FILE_NAME, topic_n))
+    mdl.save(file_prefix + '.mdl')
 
-    mapping.to_csv('{}_{}.csv'.format(FILE_NAME, topic_n))
+    mapping.to_csv(file_prefix + '.csv')
 
     return {FILE_NAME: mdl.ll_per_word}

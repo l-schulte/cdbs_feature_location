@@ -13,12 +13,10 @@ def __get_word_list(features, document: data.Document):
     return word_list
 
 
-def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
+def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> List[dict]:
 
     data_list = []
     mdl.burn_in = 10
-
-    # export = []
 
     for document in documents:
 
@@ -34,24 +32,13 @@ def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
                 'model_index': idx
             }
             data_list.append(tmp)
-            # export.append(word_list)
 
-    # json.dump(export, open('export.json', 'w'))
-    # exit()
-
-    mdl.train(1000)
-    # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
-
-    # if hasattr(mdl, 'k'):
-    #     k = mdl.k
-    # if hasattr(mdl, 'k2'):
-    #     k = mdl.k2
-
-    # for k in range(k):
-    #     print('Top 5 words of topic #{}'.format(k))
-    #     print(mdl.get_topic_words(k, top_n=5))
-
-    # mdl.summary()
+    iterations = 1000
+    for i in range(10, iterations, 10):
+        mdl.train(10)
+        print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+        if i % 100 == 0:
+            mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
 
     return data_list
 

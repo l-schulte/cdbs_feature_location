@@ -67,7 +67,10 @@ def evaluate(text, k1, k2):
 def train(documents, features, topic_n_k1=20, topics_n_k2=20):
 
     mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, seed=123, rm_top=20)
-    data_list = tomotopy_train(mdl, documents, features)
+
+    file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
+
+    data_list = tomotopy_train(mdl, documents, features, file_prefix)
 
     for row in data_list:
 
@@ -89,10 +92,10 @@ def train(documents, features, topic_n_k1=20, topics_n_k2=20):
 
     # print(res)
 
-    mdl.save('{}_{}_{}.mdl'.format(FILE_NAME, topic_n_k1, topics_n_k2))
+    mdl.save(file_prefix + '.mdl')
 
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
 
-    mapping.to_csv('{}_{}_{}.csv'.format(FILE_NAME, topic_n_k1, topics_n_k2))
+    mapping.to_csv(file_prefix + '.csv')
 
     return {FILE_NAME: mdl.ll_per_word}
