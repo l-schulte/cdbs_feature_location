@@ -52,8 +52,15 @@ def train(args):
 
     documents = data.get_documents(args.base)
 
-    features = get_db_features().find_one()
-    features = data.nltk_feature_filter(features)
+    all_features = get_db_features().find_one()
+    features = {}
+    for feature_id in all_features:
+        if feature_id == '_id':
+            continue
+        if all_features[feature_id]['type']['name'] not in ['Bug', 'Test']:
+            features[feature_id] = all_features[feature_id]
+
+    print('skipped {} entries'.format(len(all_features) - len(features)))
 
     result = []
 

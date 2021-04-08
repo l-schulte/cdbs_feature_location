@@ -54,7 +54,7 @@ def train(documents, features, topic_n=20):
 
     file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
-    data_list, _ = tomotopy_train(mdl, documents, features, file_prefix)
+    data_list, mdl, _ = tomotopy_train(mdl, documents, features, file_prefix)
 
     for row in data_list:
 
@@ -69,8 +69,6 @@ def train(documents, features, topic_n=20):
     mapping = pd.DataFrame(data_list, columns=columns)
 
     # print(res)
-
-    mdl.save(file_prefix + '.mdl')
 
     mapping.to_csv(file_prefix + '.csv')
 

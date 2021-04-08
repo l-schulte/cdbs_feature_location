@@ -75,7 +75,7 @@ def train(documents, features, topic_n_k1=20, topics_n_k2=20):
     while not success and retrys < max_retrys:
 
         mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
-        data_list, success = tomotopy_train(mdl, documents, features, file_prefix)
+        data_list, mdl, success = tomotopy_train(mdl, documents, features, file_prefix)
 
     for row in data_list:
 
@@ -96,10 +96,6 @@ def train(documents, features, topic_n_k1=20, topics_n_k2=20):
     mapping = pd.DataFrame(data_list, columns=columns)
 
     # print(res)
-
-    mdl.save(file_prefix + '.mdl')
-
-    print('PA ll per word  \t{}'.format(mdl.ll_per_word))
 
     mapping.to_csv(file_prefix + '.csv')
 

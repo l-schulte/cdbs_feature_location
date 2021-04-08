@@ -39,7 +39,7 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
     retrys = 0
     max_retrys = 2
     i = 0
-    while i <= iterations:
+    while i < iterations:
         mdl.train(steps)
 
         if math.isnan(mdl.ll_per_word) and retrys < max_retrys:
@@ -55,9 +55,11 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
 
         if retrys == max_retrys:
-            return data_list, False
+            return data_list, mdl, False
 
-    return data_list, True
+    mdl.save(file_prefix + '.mdl')
+    print('PA ll per word  \t{}'.format(mdl.ll_per_word))
+    return data_list, mdl, True
 
 
 def get_page(df, top_n, classes, methods):
