@@ -1,6 +1,6 @@
 import json
 import math
-from typing import List
+from typing import List, Tuple
 from data import data
 
 
@@ -14,7 +14,7 @@ def __get_word_list(features, document: data.Document):
     return word_list
 
 
-def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> (List[dict], bool):
+def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> Tuple[List[dict], object, bool]:
 
     data_list = []
     mdl.burn_in = 10
@@ -26,15 +26,15 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         if word_list:
             idx = mdl.add_doc(word_list)
             tmp = {
-                'id': document._id,
-                'features': document.feature_ids,
+                'id': str(document._id),
+                'features': list(document.feature_ids),
                 'name': document.name,
                 'path': document.path,
                 'model_index': idx
             }
             data_list.append(tmp)
 
-    iterations = 1000
+    iterations = 100
     steps = 10
     retrys = 0
     max_retrys = 2
@@ -57,6 +57,7 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         if retrys == max_retrys:
             return data_list, mdl, False
 
+    json.dump(data_list, open(file_prefix + '.json', 'w'), indent=4)
     mdl.save(file_prefix + '.mdl')
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
     return data_list, mdl, True
