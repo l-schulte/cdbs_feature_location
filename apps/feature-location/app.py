@@ -2,6 +2,7 @@ import argparse
 import os
 import progressbar
 import json
+import math
 from models import lda, pachinko
 from data import data, get_db_features
 from validation import mean_reciprocal_rank as MRR
@@ -141,7 +142,11 @@ def execute(args=None):
 
 def optimize_training():
 
-    results = []
+    dump_path = 'optimize_dump.json'
+    if os.path.isfile(dump_path):
+        results = json.load(open(dump_path, 'r'))
+    else:
+        results = {}
 
     args = type('', (), {})()
     args.train = 'pa'
@@ -154,13 +159,16 @@ def optimize_training():
         for k2 in range(10, 400, 50):
             args.pa_k2 = k2
 
+            result_id = 'k1_{}_k2_{}'.format(k1, k2)
             print('k1: {} \t k2: \t{}'.format(k1, k2))
 
-            results.append({'k1': k1, 'k2': k2, 'result': execute(args)})
+            if result_id in results and not math.isnan(results[result_id]['result']):
+                print('skip, ll = \t{}'.format(results[result_id]['result']))
+                continue
+
+            results[result_id] = {'k1': k1, 'k2': k2, 'result': execute(args)}
 
             json.dump(results, open('optimize_dump.json', 'w'), indent=4)
-
-    json.dump(results, open('optimize_dump.json', 'w'), indent=4)
 
 
 if __name__ == "__main__":
