@@ -60,6 +60,8 @@ def train(args):
         if all_features[feature_id]['type']['name'] not in ['Bug', 'Test']:
             features[feature_id] = all_features[feature_id]
 
+    features = data.nltk_feature_filter(features)
+
     print('skipped {} entries'.format(len(all_features) - len(features)))
 
     result = []
