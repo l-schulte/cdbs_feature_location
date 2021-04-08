@@ -66,11 +66,16 @@ def evaluate(text, k1, k2):
 
 def train(documents, features, topic_n_k1=20, topics_n_k2=20):
 
-    mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, seed=123, rm_top=20)
-
     file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
 
-    data_list = tomotopy_train(mdl, documents, features, file_prefix)
+    success = False
+    retrys = 0
+    max_retrys = 10
+
+    while not success and retrys < max_retrys:
+
+        mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
+        data_list, success = tomotopy_train(mdl, documents, features, file_prefix)
 
     for row in data_list:
 

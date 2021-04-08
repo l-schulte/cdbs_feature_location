@@ -14,7 +14,7 @@ def __get_word_list(features, document: data.Document):
     return word_list
 
 
-def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> List[dict]:
+def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> (List[dict], bool):
 
     data_list = []
     mdl.burn_in = 10
@@ -37,22 +37,27 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
     iterations = 1000
     steps = 10
     retrys = 0
-    max_retrys = 5
-    for i in range(10, iterations, steps):
-        mdl.train(10)
+    max_retrys = 2
+    i = 0
+    while i <= iterations:
+        mdl.train(steps)
 
         if math.isnan(mdl.ll_per_word) and retrys < max_retrys:
-            i -= steps
             mdl = mdl.load('tmp/{}_i{}.mdl'.format(file_prefix, i))
             retrys += 1
             print('v Iteration: {}\t Retry: {}/{}'.format(i, retrys, max_retrys))
+            continue
 
+        i += steps
         retrys = 0
         print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
         mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
 
-    return data_list
+        if retrys == max_retrys:
+            return data_list, False
+
+    return data_list, True
 
 
 def get_page(df, top_n, classes, methods):

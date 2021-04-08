@@ -54,7 +54,7 @@ def train(documents, features, topic_n=20):
 
     file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
-    data_list = tomotopy_train(mdl, documents, features, file_prefix)
+    data_list, _ = tomotopy_train(mdl, documents, features, file_prefix)
 
     for row in data_list:
 
