@@ -171,15 +171,16 @@ def optimize_training():
             result_id = 'k1_{}_k2_{}'.format(k1, k2)
             print('k1: {} \t k2: \t{}'.format(k1, k2))
 
-            if result_id in results and not math.isnan(results[result_id]['result']['train']):
-                print('skip, ll = \t{}'.format(results[result_id]['result']['train']))
+            if result_id in results and not math.isnan(results[result_id]['result']['train'][0][args.train]):
+                print('skip, ll = \t{}'.format(results[result_id]['result']['train'][0][args.train]))
                 continue
 
-            results[result_id] = {'k1': k1, 'k2': k2, 'result': execute(args)}
+            res = execute(args)
+            results[result_id] = {'k1': k1, 'k2': k2, 'result': res}
 
             json.dump(results, open('optimize_dump.json', 'w'), indent=4)
 
 
 if __name__ == "__main__":
-    execute()
-    # optimize_training()
+    # execute()
+    optimize_training()

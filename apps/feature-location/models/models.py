@@ -48,14 +48,14 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
             print('v Iteration: {}\t Retry: {}/{}'.format(i, retrys, max_retrys))
             continue
 
+        if retrys == max_retrys:
+            return data_list, mdl, False
+
         i += steps
         retrys = 0
         print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
         mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
-
-        if retrys == max_retrys:
-            return data_list, mdl, False
 
     mdl.save(file_prefix + '.mdl')
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
