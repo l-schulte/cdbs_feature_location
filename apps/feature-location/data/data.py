@@ -3,6 +3,7 @@ from data import get_db_files
 import nltk
 import json
 import os
+from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
@@ -87,7 +88,10 @@ def nltk_filter(text: str):
     text = text.lower()
 
     text_tokens = word_tokenize(text)
-    remove_sw = [word for word in text_tokens if word not in stop_words and word.isalpha()]
+
+    ps = PorterStemmer()
+
+    remove_sw = [ps.stem(word) for word in text_tokens if word not in stop_words and word.isalpha()]
 
     return remove_sw
 

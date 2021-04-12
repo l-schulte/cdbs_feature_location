@@ -1,6 +1,7 @@
 import json
-from typing import List
-from data import data, get_db_features, get_db_files
+import math
+from typing import List, Tuple
+from data import data
 
 
 def __get_word_list(features, document: data.Document):
@@ -13,9 +14,10 @@ def __get_word_list(features, document: data.Document):
     return word_list
 
 
-def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
+def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> Tuple[List[dict], object, bool]:
 
     data_list = []
+    mdl.burn_in = 10
 
     for document in documents:
 
@@ -24,25 +26,40 @@ def tomotopy_train(mdl, documents: List[data.Document], features) -> List[dict]:
         if word_list:
             idx = mdl.add_doc(word_list)
             tmp = {
-                'id': document._id,
-                'features': document.feature_ids,
+                'id': str(document._id),
+                'features': list(document.feature_ids),
                 'name': document.name,
                 'path': document.path,
                 'model_index': idx
             }
             data_list.append(tmp)
 
-    for i in range(0, 100, 10):
-        mdl.train(10)
-        # print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+    iterations = 100
+    steps = 10
+    retrys = 0
+    max_retrys = 2
+    i = 0
+    while i < iterations:
+        mdl.train(steps)
 
-    # for k in range(mdl.k2):
-    #     print('Top 10 words of topic #{}'.format(k))
-    #     print(mdl.get_topic_words(k, top_n=3))
+        if math.isnan(mdl.ll_per_word) and retrys < max_retrys:
+            mdl = mdl.load('tmp/{}_i{}.mdl'.format(file_prefix, i))
+            retrys += 1
+            print('v Iteration: {}\t Retry: {}/{}'.format(i, retrys, max_retrys))
+            continue
 
-    # mdl.summary()
+        if retrys == max_retrys:
+            return data_list, mdl, False
 
-    return data_list
+        i += steps
+        retrys = 0
+        print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+
+        mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
+
+    mdl.save(file_prefix + '.mdl')
+    print('PA ll per word  \t{}'.format(mdl.ll_per_word))
+    return data_list, mdl, True
 
 
 def get_page(df, top_n, classes, methods):

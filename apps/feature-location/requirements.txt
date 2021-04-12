@@ -1,2 +1,6 @@
 nltk
 tomotopy
+pandas
+progressbar
+pymongo
+dnspython
