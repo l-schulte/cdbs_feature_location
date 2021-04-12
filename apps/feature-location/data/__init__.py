@@ -1,13 +1,23 @@
 from pymongo.collection import Collection
 from datetime import date
 
-REPO = {
+zookeeper = {
     'title': 'zookeeper',
     'git-url': 'https://github.com/apache/zookeeper.git',
     'jira-url': 'https://issues.apache.org/jira',
     'after': date(2000, 1, 1),
     'before': date(2012, 11, 19)
 }
+
+tika = {
+    'title': 'tika',
+    'git-url': 'https://github.com/apache/tika.git',
+    'jira-url': 'https://issues.apache.org/jira',
+    'after': date(2000, 1, 1),
+    'before': date(2013, 1, 19)  # v1.3
+}
+
+REPO = zookeeper
 
 db = None
 
