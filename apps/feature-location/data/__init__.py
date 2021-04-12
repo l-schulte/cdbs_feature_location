@@ -32,7 +32,7 @@ def __init_db():
 
     client = MongoClient('mongodb+srv://{}:{}@{}'.format(MONGODB_USER_ATLAS, MONGODB_PWD_ATLAS, MONGODB_ADDR_ATLAS))
 
-    db = client.cdbs_fl_db
+    db = client[REPO['title']]
 
 
 def get_db_commits() -> Collection:

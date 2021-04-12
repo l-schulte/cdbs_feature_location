@@ -22,7 +22,7 @@ MONGODB_PWD_ATLAS = 'M5Aks6FW2bKDVbG'
 
 client = MongoClient('mongodb+srv://{}:{}@{}'.format(MONGODB_USER_ATLAS, MONGODB_PWD_ATLAS, MONGODB_ADDR_ATLAS))
 
-db = client.cdbs_fl_db
+db = client[REPO['title']]
 db_commits = db.commits
 db_files = db.files
 db_features = db.features
