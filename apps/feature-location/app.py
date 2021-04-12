@@ -57,7 +57,7 @@ def train(args):
     for feature_id in all_features:
         if feature_id == '_id':
             continue
-        if all_features[feature_id]['type']['name'] not in ['Bug', 'Test']:
+        if all_features[feature_id]['type']['name'] not in []:
             features[feature_id] = all_features[feature_id]
 
     features = data.nltk_feature_filter(features)
@@ -171,8 +171,8 @@ def optimize_training():
             result_id = 'k1_{}_k2_{}'.format(k1, k2)
             print('k1: {} \t k2: \t{}'.format(k1, k2))
 
-            if result_id in results and not math.isnan(results[result_id]['result']):
-                print('skip, ll = \t{}'.format(results[result_id]['result']))
+            if result_id in results and not math.isnan(results[result_id]['result']['train']):
+                print('skip, ll = \t{}'.format(results[result_id]['result']['train']))
                 continue
 
             results[result_id] = {'k1': k1, 'k2': k2, 'result': execute(args)}

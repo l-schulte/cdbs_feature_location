@@ -1,7 +1,7 @@
 from models.models import get_json, tomotopy_train
 import tomotopy as tp
 import pandas as pd
-
+import json
 from data import data
 
 FILE_NAME = 'lda'
@@ -70,6 +70,7 @@ def train(documents, features, topic_n=20):
 
     # print(res)
 
+    json.dump(data_list, open(file_prefix + '.json', 'w'), indent=4)
     mapping.to_csv(file_prefix + '.csv')
 
     return {FILE_NAME: mdl.ll_per_word}

@@ -57,7 +57,6 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         if retrys == max_retrys:
             return data_list, mdl, False
 
-    json.dump(data_list, open(file_prefix + '.json', 'w'), indent=4)
     mdl.save(file_prefix + '.mdl')
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
     return data_list, mdl, True
