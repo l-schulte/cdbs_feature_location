@@ -2,6 +2,7 @@ from models.models import get_json, tomotopy_train
 import tomotopy as tp
 import pandas as pd
 import json
+import csv
 from data import data
 
 FILE_NAME = 'pa'
@@ -68,14 +69,32 @@ def train(documents, features, topic_n_k1=20, topics_n_k2=20):
 
     file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
 
-    success = False
-    retrys = 0
-    max_retrys = 10
+    # success = False
+    # retrys = 0
+    # max_retrys = 10
 
-    while not success and retrys < max_retrys:
+    # while not success and retrys < max_retrys:
 
-        mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
-        data_list, mdl, success = tomotopy_train(mdl, documents, features, file_prefix)
+    #     mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
+    #     data_list, mdl, success = tomotopy_train(mdl, documents, features, file_prefix)
+
+    mdl = tp.PAModel().load('{}.mdl'.format(file_prefix))
+    data_list = []
+
+    with open('{}.csv'.format(file_prefix), 'r', encoding='utf-8') as csvf:
+        # load csv file data using csv library's dictionary reader
+        csvReader = csv.DictReader(csvf)
+
+        # convert each csv row into python dict
+        for row in csvReader:
+            # add this python dict to json array
+            data_list.append({
+                'id': row['id'],
+                'features': row['features'],
+                'name': row['name'],
+                'path': row['path'],
+                'model_index': row['model_index']
+            })
 
     for row in data_list:
 
