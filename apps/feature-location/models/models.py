@@ -34,7 +34,7 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
             }
             data_list.append(tmp)
 
-    iterations = 100
+    iterations = 1000
     steps = 10
     retrys = 0
     max_retrys = 2
