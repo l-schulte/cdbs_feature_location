@@ -1,16 +1,10 @@
 from typing import List
 from data import get_db_files
-import nltk
 import json
 import os
-from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-nltk.download('stopwords', quiet=True)
-nltk.download('punkt', quiet=True)
-
-stop_words = stopwords.words('english')
+from data import stopwords
 
 
 class Document:
@@ -89,9 +83,10 @@ def nltk_filter(text: str):
 
     text_tokens = word_tokenize(text)
 
-    ps = PorterStemmer()
+    remove_sw = [token for token in text_tokens if token not in stopwords]
 
-    remove_sw = [ps.stem(word) for word in text_tokens if word not in stop_words and word.isalpha()]
+    # ps = PorterStemmer()
+    # remove_sw = [ps.stem(word) for word in text_tokens if word not in stop_words and word.isalpha()]
 
     return remove_sw
 
