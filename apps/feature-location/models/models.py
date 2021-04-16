@@ -41,6 +41,7 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
     i = 0
     while i < iterations:
         mdl.train(steps)
+        i += steps
 
         if math.isnan(mdl.ll_per_word) and retrys < max_retrys:
             mdl = mdl.load('tmp/{}_i{}.mdl'.format(file_prefix, i))
@@ -51,7 +52,6 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         if retrys == max_retrys:
             return data_list, mdl, False
 
-        i += steps
         retrys = 0
         print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 

@@ -26,9 +26,11 @@ def evaluate(args):
         filenames.append('x')
         queries.append(args.query)
 
-    def save_or_print(path, res):
+    def save_or_print(path, file, res):
+        if not os.path.exists(path):
+            os.mkdir(path)
         if args.input:
-            f = open(path, 'w')
+            f = open('{}/{}'.format(path, file), 'w')
             f.write(res)
             f.close()
         else:
@@ -37,15 +39,16 @@ def evaluate(args):
     for filename, query in progressbar.progressbar(zip(filenames, queries)):
 
         if 'lda' in args.eval:
-            tmp = lda.evaluate(query, args.lda_k1)
-            res_lda = lda.interpret(tmp, args.pages, args.classes, args.methods, args.determination, args.lda_k1)
-            save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'lda', filename), res_lda)
+            tmp = lda.evaluate(query, args.input, args.lda_k1)
+            res_lda = lda.interpret(tmp, args.input, args.pages, args.classes,
+                                    args.methods, args.determination, args.lda_k1)
+            save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
 
         if 'pa' in args.eval:
-            tmp = pachinko.evaluate(query, args.pa_k1, args.pa_k2)
-            res_pa = pachinko.interpret(tmp, args.pages, args.classes, args.methods,
+            tmp = pachinko.evaluate(query, args.input, args.pa_k1, args.pa_k2)
+            res_pa = pachinko.interpret(tmp, args.input, args.pages, args.classes, args.methods,
                                         args.determination, args.pa_k1, args.pa_k2)
-            save_or_print('{}\\queries\\{}\\{}'.format(args.input, 'pa', filename), res_pa)
+            save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
 
 
 def train(args):
@@ -182,5 +185,5 @@ def optimize_training():
 
 
 if __name__ == "__main__":
-    # execute()
-    optimize_training()
+    execute()
+    # optimize_training()
