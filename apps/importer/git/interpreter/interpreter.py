@@ -8,7 +8,7 @@ from git.interpreter import LANGUAGE_REGX
 
 
 def __join_json(j1, j2):
-    """Summs up fields from two jsons, assuming values are numbers
+    """Summs up fields from two jsons, assuming values are {'cnt': int}
 
     """
 
@@ -17,7 +17,9 @@ def __join_json(j1, j2):
 
     for key in j2:
         if key in j1:
-            j1[key] += j2[key]
+            j1[key]['cnt'] += j2[key]['cnt']
+            j1[key]['+'] += j2[key]['+']
+            j1[key]['-'] += j2[key]['-']
         else:
             j1[key] = j2[key]
 
@@ -190,7 +192,8 @@ def _interpret_file_diff(lines, extension):
         r_chunk_head = re.search(r'^@@ -(\d+),\d+ \+(\d+),\d+ @@ (.*)', line)
         if r_chunk_head:
             methods_changed, classes_in_file = _interpret_file_chunk_diff(extension, chunk_line_buffer,
-                                                                          chunk_head_old_start_line, chunk_head_new_start_line)
+                                                                          chunk_head_old_start_line,
+                                                                          chunk_head_new_start_line)
             methods = __join_json(methods, methods_changed)
 
             chunk_head_old_start_line = r_chunk_head.group(1)
@@ -232,7 +235,7 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
 
 def __interpret_changed_methods(lines, re_method_name):
 
-    methods_changed = {'unknown': 0}
+    methods_changed = {'unknown': {'cnt': 0, '+': '', '-': ''}}
     method_name = None
     method_indentation = None
 
@@ -246,14 +249,15 @@ def __interpret_changed_methods(lines, re_method_name):
             re_res_method_changed = re.search(re_method_name, line)
         if re_res_method_changed is not None:
 
-            changed = re_res_method_changed.group(1) != ' '
+            changed = re_res_method_changed.group(1)
             method_indentation = re_res_method_changed.group(2)
             method_name = re_res_method_changed.group(3)
 
-            if changed:
-                methods_changed[method_name] = 1
-            else:
-                methods_changed[method_name] = 0
+            methods_changed[method_name] = {'cnt': 0, '+': '', '-': ''}
+
+            if changed != ' ':
+                methods_changed[method_name]['cnt'] += 1
+                methods_changed[method_name][changed] += line
 
             continue
 
@@ -261,13 +265,15 @@ def __interpret_changed_methods(lines, re_method_name):
 
             change_inside = re.search(r'^(\+|\-| )' + method_indentation + r'(\t+| +)', line)
             if change_inside is not None and change_inside.group(1) != ' ':
-                methods_changed[method_name] += 1
+                methods_changed[method_name]['cnt'] += 1
+                methods_changed[method_name][change_inside.group(1)] += change_inside.group(2)
                 continue
 
         re_res_unknown_changed = re.search(r'^(\+|\-| )(\t+| +)', line)
         if re_res_unknown_changed is not None and re_res_unknown_changed.group(1) != ' ':
 
-            methods_changed['unknown'] += 1
+            methods_changed['unknown']['cnt'] += 1
+            methods_changed['unknown'][re_res_unknown_changed.group(1)] += re_res_unknown_changed.group(2)
             method_name = None
             method_indentation = None
 
@@ -278,7 +284,7 @@ def __interpret_changed_methods(lines, re_method_name):
 
 def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_close):
 
-    classes_changed = {'unknown': 0}
+    classes_changed = {'unknown': {'cnt': 0, '+': '', '-': ''}}
     class_name = 'unknown'
     brackets_count = 0
 
@@ -291,22 +297,23 @@ def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_cl
         if re_class_name and brackets_count == 0:
             re_res_class_name = re.search(re_class_name, line)
         if re_res_class_name is not None:
-            changed = re_res_class_name.group(1) != ' '
+            changed = re_res_class_name.group(1)
             class_name = re_res_class_name.group(3)
 
-            if changed:
-                classes_changed[class_name] = 1
-            else:
-                classes_changed[class_name] = 0
+            classes_changed[class_name] = {'cnt': 0, '+': '', '-': ''}
+            if changed != ' ':
+                classes_changed[class_name]['cnt'] += 1
+                classes_changed[class_name][changed] += line
 
             brackets_count = line.count(brackets_open) - line.count(brackets_close)
 
             continue
 
         brackets_count += line.count(brackets_open) - line.count(brackets_close)
-        change_inside = re.search(r'^(\+|\-| )', line)
+        change_inside = re.search(r'^(\+|\-| )(.*)', line)
         if change_inside is not None and change_inside.group(1) != ' ':
-            classes_changed[class_name] += 1
+            classes_changed[class_name]['cnt'] += 1
+            classes_changed[class_name][change_inside.group(1)] += change_inside.group(2)
             continue
 
     return classes_changed
