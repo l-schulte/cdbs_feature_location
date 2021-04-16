@@ -1,3 +1,4 @@
+import nltk
 from pymongo.collection import Collection
 from datetime import date
 import string
@@ -68,6 +69,8 @@ stopwords.update(string.punctuation)
 stopwords.update(string.digits)
 stopwords.update(string.whitespace)
 
+nltk.download('punkt', quiet=True)
+
 REPO = zookeeper
 
 db = None
@@ -83,7 +86,7 @@ def __init_db():
 
     client = MongoClient('mongodb+srv://{}:{}@{}'.format(MONGODB_USER_ATLAS, MONGODB_PWD_ATLAS, MONGODB_ADDR_ATLAS))
 
-    db = client[REPO['title']]
+    db = client['cdbs_fl_db']
 
 
 def get_db_commits() -> Collection:

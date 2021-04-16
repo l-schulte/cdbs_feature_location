@@ -7,14 +7,14 @@ from data import data
 FILE_NAME = 'pa'
 
 
-def interpret(results, top_n, classes, methods, determination, k1, k2):
+def interpret(results, path, top_n, classes, methods, determination, k1, k2):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
 
     if k1 and k2:
-        df = pd.read_csv('{}_{}_{}.csv'.format(FILE_NAME, k1, k2))
+        df = pd.read_csv('{}/{}_{}_{}.csv'.format(path, FILE_NAME, k1, k2))
     else:
-        df = pd.read_csv('{}.csv'.format(FILE_NAME))
+        df = pd.read_csv('{}/{}.csv'.format(path, FILE_NAME))
 
     if determination == 'ml':
 
@@ -45,16 +45,16 @@ def interpret(results, top_n, classes, methods, determination, k1, k2):
     return get_json(sorted_df, log_ll, top_n, classes, methods)
 
 
-def evaluate(text, k1, k2):
+def evaluate(text, path, k1, k2):
 
     word_list = data.nltk_filter(text)
     # print('\nevaluating <{}> for pa...'.format(text))
     # print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
 
     if k1 and k2:
-        mdl = tp.PAModel().load('{}_{}_{}.mdl'.format(FILE_NAME, k1, k2))
+        mdl = tp.PAModel().load('{}/{}_{}_{}.mdl'.format(path, FILE_NAME, k1, k2))
     else:
-        mdl = tp.PAModel().load('{}.mdl'.format(FILE_NAME))
+        mdl = tp.PAModel().load('{}/{}.mdl'.format(path, FILE_NAME))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -64,9 +64,9 @@ def evaluate(text, k1, k2):
     return 'error'
 
 
-def train(documents, features, topic_n_k1=20, topics_n_k2=20):
+def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
 
-    file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
+    file_prefix = '{}/{}_{}_{}'.format(path, FILE_NAME, topic_n_k1, topics_n_k2)
 
     success = False
     retrys = 0

@@ -7,13 +7,13 @@ from data import data
 FILE_NAME = 'lda'
 
 
-def interpret(results, top_n, classes, methods, determination, k1):
+def interpret(results, path, top_n, classes, methods, determination, k1):
 
     result, log_ll = results
     if k1:
-        df = pd.read_csv('{}_{}.csv'.format(FILE_NAME, k1))
+        df = pd.read_csv('{}/{}_{}.csv'.format(path, FILE_NAME, k1))
     else:
-        df = pd.read_csv('{}.csv'.format(FILE_NAME, k1))
+        df = pd.read_csv('{}/{}.csv'.format(path, FILE_NAME, k1))
 
     if determination == 'ml':
         max_value = max(result)
@@ -31,14 +31,14 @@ def interpret(results, top_n, classes, methods, determination, k1):
     return get_json(sorted_df, log_ll, top_n, classes, methods)
 
 
-def evaluate(text, k1):
+def evaluate(text, path, k1):
 
     word_list = data.nltk_filter(text)
 
     if k1:
-        mdl = tp.LDAModel().load('{}_{}.mdl'.format(FILE_NAME, k1))
+        mdl = tp.LDAModel().load('{}\\{}_{}.mdl'.format(path, FILE_NAME, k1))
     else:
-        mdl = tp.LDAModel().load('{}.mdl'.format(FILE_NAME))
+        mdl = tp.LDAModel().load('{}\\{}.mdl'.format(path, FILE_NAME))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -48,11 +48,11 @@ def evaluate(text, k1):
     return 'error'
 
 
-def train(documents, features, topic_n=20):
+def train(documents, features, path, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
 
-    file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
+    file_prefix = '{}\\{}_{}'.format(path, FILE_NAME, topic_n)
 
     data_list, mdl, _ = tomotopy_train(mdl, documents, features, file_prefix)
 
