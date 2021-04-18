@@ -18,7 +18,8 @@ def __get_word_list(features, document: data.Document, diff_type=['+']):
     return word_list
 
 
-def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix='') -> Tuple[List[dict], object, bool]:
+def tomotopy_train(mdl, documents: List[data.Document], features, path, file_prefix='') \
+        -> Tuple[List[dict], object, bool]:
 
     data_list = []
     mdl.burn_in = 10
@@ -48,7 +49,7 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         i += steps
 
         if math.isnan(mdl.ll_per_word) and retrys < max_retrys:
-            mdl = mdl.load('tmp/{}_i{}.mdl'.format(file_prefix, i))
+            mdl = mdl.load('{}/tmp/{}_i{}.mdl'.format(path, file_prefix, i))
             retrys += 1
             print('v Iteration: {}\t Retry: {}/{}'.format(i, retrys, max_retrys))
             continue
@@ -59,9 +60,9 @@ def tomotopy_train(mdl, documents: List[data.Document], features, file_prefix=''
         retrys = 0
         print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
 
-        mdl.save('tmp/{}_i{}.mdl'.format(file_prefix, i))
+        mdl.save('{}/tmp/{}_i{}.mdl'.format(path, file_prefix, i))
 
-    mdl.save(file_prefix + '.mdl')
+    mdl.save('{}/{}.mdl'.format(path, file_prefix))
     print('PA ll per word  \t{}'.format(mdl.ll_per_word))
     return data_list, mdl, True
 

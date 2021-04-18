@@ -22,7 +22,7 @@ class Document:
 
         self.diffs = []
         for diff in diffs:
-            self.diffs.add({
+            self.diffs.append({
                 '+': nltk_filter(diff['+']),
                 '-': nltk_filter(diff['-'])
             })
@@ -48,13 +48,16 @@ def get_documents(type) -> List[Document]:
                             if class_name == 'unknown' or change['diff']['classes'][class_name]['cnt'] == 0:
                                 continue
                             if class_name not in classes:
+
+                                tmp = set()
+                                tmp.add(change['feature_id'])
                                 classes[class_name] = {
-                                    'ids': set(change['feature_id']),
+                                    'ids': tmp,
                                     'diffs': [change['diff']['classes'][class_name]]
                                 }
                             else:
                                 classes[class_name]['ids'].add(change['feature_id'])
-                                classes[class_name]['diffs'].add(change['diff']['classes'][class_name])
+                                classes[class_name]['diffs'].append(change['diff']['classes'][class_name])
             for class_name in classes:
                 feature_ids = classes[class_name]['ids']
                 diffs = classes[class_name]['diffs']
