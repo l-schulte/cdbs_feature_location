@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, JSON
 from data import get_db_files
 import json
 import os
@@ -12,12 +12,20 @@ class Document:
     name: str
     path: str
     feature_ids: List[str]
+    diffs: List[str]
 
-    def __init__(self, _id, name: str, path: str, feature_ids: List[str]):
+    def __init__(self, _id, name: str, path: str, feature_ids: List[str], diffs: List[JSON]):
         self._id = _id
         self.name = name
         self.path = path
         self.feature_ids = feature_ids
+
+        self.diffs = []
+        for diff in diffs:
+            self.diffs.add({
+                '+': nltk_filter(diff['+']),
+                '-': nltk_filter(diff['-'])
+            })
 
 
 def get_documents(type) -> List[Document]:
@@ -26,28 +34,32 @@ def get_documents(type) -> List[Document]:
     if type == 'file':
         for file in get_db_files().find():
             name = file['path'].split('/')[-1].split('.')[0]
-            documents.append(Document(str(file['_id']), name, file['path'], file['feature_ids']))
+            documents.append(Document(str(file['_id']), name, file['path'], file['feature_ids'], None))
         return documents
 
     if type == 'class':
         for file in get_db_files().find():
             classes = {}
+            diffs = {}
             if 'changes' in file:
                 for change in file['changes']:
                     if 'diff' in change and 'classes' in change['diff']:
                         for class_name in change['diff']['classes']:
-                            if class_name == 'unknown' or change['diff']['classes'][class_name] == 0:
+                            if class_name == 'unknown' or change['diff']['classes'][class_name]['cnt'] == 0:
                                 continue
                             if class_name not in classes:
-                                tmp = set()
-                                tmp.add(change['feature_id'])
-                                classes[class_name] = tmp
+                                classes[class_name] = {
+                                    'ids': set(change['feature_id']),
+                                    'diffs': [change['diff']['classes'][class_name]]
+                                }
                             else:
-                                classes[class_name].add(change['feature_id'])
+                                classes[class_name]['ids'].add(change['feature_id'])
+                                classes[class_name]['diffs'].add(change['diff']['classes'][class_name])
             for class_name in classes:
-                feature_ids = classes[class_name]
+                feature_ids = classes[class_name]['ids']
+                diffs = classes[class_name]['diffs']
                 path = '{} -> {}'.format(file['path'], class_name)
-                documents.append(Document(file['_id'], class_name, path, feature_ids))
+                documents.append(Document(file['_id'], class_name, path, feature_ids, diffs))
         return documents
 
 
