@@ -46,7 +46,7 @@ def train(documents, features, path, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
 
-    file_prefix = '{}_{}'.format(path, FILE_NAME, topic_n)
+    file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
     data_list, mdl, _ = tomotopy_train(mdl, documents, features, path, file_prefix)
 

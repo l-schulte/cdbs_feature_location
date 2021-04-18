@@ -60,7 +60,7 @@ def evaluate(text, path, k1, k2):
 
 def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
 
-    file_prefix = '{}_{}_{}'.format(path, FILE_NAME, topic_n_k1, topics_n_k2)
+    file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
 
     success = False
     retrys = 0

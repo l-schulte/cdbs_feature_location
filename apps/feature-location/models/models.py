@@ -1,5 +1,6 @@
 import json
 import math
+import os
 from typing import List, Tuple
 from data import data
 
@@ -38,6 +39,8 @@ def tomotopy_train(mdl, documents: List[data.Document], features, path, file_pre
                 'model_index': idx
             }
             data_list.append(tmp)
+
+    os.mkdir('{}/tmp'.format(path))
 
     iterations = 1000
     steps = 10
