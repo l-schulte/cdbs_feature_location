@@ -263,17 +263,17 @@ def __interpret_changed_methods(lines, re_method_name):
 
         if method_name is not None and method_indentation is not None:
 
-            change_inside = re.search(r'^(\+|\-| )' + method_indentation + r'(\t+| +)', line)
+            change_inside = re.search(r'^(\+|\-| )' + method_indentation + r'(\t+| +)(.*)', line)
             if change_inside is not None and change_inside.group(1) != ' ':
                 methods_changed[method_name]['cnt'] += 1
-                methods_changed[method_name][change_inside.group(1)] += change_inside.group(2)
+                methods_changed[method_name][change_inside.group(1)] += change_inside.group(3)
                 continue
 
-        re_res_unknown_changed = re.search(r'^(\+|\-| )(\t+| +)', line)
+        re_res_unknown_changed = re.search(r'^(\+|\-| )(\t+| +)(.*)', line)
         if re_res_unknown_changed is not None and re_res_unknown_changed.group(1) != ' ':
 
             methods_changed['unknown']['cnt'] += 1
-            methods_changed['unknown'][re_res_unknown_changed.group(1)] += re_res_unknown_changed.group(2)
+            methods_changed['unknown'][re_res_unknown_changed.group(1)] += re_res_unknown_changed.group(3)
             method_name = None
             method_indentation = None
 
