@@ -1,4 +1,4 @@
-from typing import List, JSON
+from typing import List
 from data import get_db_files
 import json
 import os
@@ -14,7 +14,7 @@ class Document:
     feature_ids: List[str]
     diffs: List[str]
 
-    def __init__(self, _id, name: str, path: str, feature_ids: List[str], diffs: List[JSON]):
+    def __init__(self, _id, name: str, path: str, feature_ids: List[str], diffs: List[any]):
         self._id = _id
         self.name = name
         self.path = path

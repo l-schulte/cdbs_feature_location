@@ -40,7 +40,8 @@ def tomotopy_train(mdl, documents: List[data.Document], features, path, file_pre
             }
             data_list.append(tmp)
 
-    os.mkdir('{}/tmp'.format(path))
+    if not os.path.exists('{}/tmp'.format(path)):
+        os.mkdir('{}/tmp'.format(path))
 
     iterations = 1000
     steps = 10
