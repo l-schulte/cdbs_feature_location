@@ -6,50 +6,8 @@ from datetime import datetime
 import math
 from models import lda, pachinko
 from data import data, get_db_features
-from validation import mean_reciprocal_rank as MRR
-
-
-def evaluate(args):
-
-    queries = []
-    filenames = []
-
-    if args.input:
-        path = '{}\\queries\\'.format(args.input)
-        filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-
-        for filename in filenames:
-            f = open('{}{}'.format(path, filename), 'r')
-            queries.append(f.read())
-            f.close()
-
-    elif args.query:
-        filenames.append('x')
-        queries.append(args.query)
-
-    def save_or_print(path, file, res):
-        if not os.path.exists(path):
-            os.mkdir(path)
-        if args.input:
-            f = open('{}/{}'.format(path, file), 'w')
-            f.write(res)
-            f.close()
-        else:
-            print(res)
-
-    for filename, query in progressbar.progressbar(zip(filenames, queries)):
-
-        if 'lda' in args.eval:
-            tmp = lda.evaluate(query, args.input, args.lda_k1)
-            res_lda = lda.interpret(tmp, args.input, args.pages, args.classes,
-                                    args.methods, args.determination, args.lda_k1)
-            save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
-
-        if 'pa' in args.eval:
-            tmp = pachinko.evaluate(query, args.input, args.pa_k1, args.pa_k2)
-            res_pa = pachinko.interpret(tmp, args.input, args.pages, args.classes, args.methods,
-                                        args.determination, args.pa_k1, args.pa_k2)
-            save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
+from validation import validation
+from evaluation import evaluation
 
 
 def train(args):
@@ -71,12 +29,31 @@ def train(args):
     result = []
 
     if 'lda' in args.train:
-        result.append(lda.train(documents, features, args.input, args.lda_k1))
+        result.append(lda.training(documents, features, args.input, args.lda_k1))
 
     if 'pa' in args.train:
-        result.append(pachinko.train(documents, features, args.input, args.pa_k1, args.pa_k2))
+        result.append(pachinko.training(documents, features, args.input, args.pa_k1, args.pa_k2))
 
     return result
+
+
+def evaluate(args):
+
+    queries, filenames = evaluation.get_queries_and_filenames(args.input, args.query)
+
+    for filename, query in progressbar.progressbar(zip(filenames, queries)):
+
+        if 'lda' in args.eval:
+            tmp = lda.evaluate(query, args.input, args.lda_k1)
+            res_lda = lda.interpret(tmp, args.input, args.pages, args.classes,
+                                    args.methods, args.determination, args.lda_k1)
+            evaluation.save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
+
+        if 'pa' in args.eval:
+            tmp = pachinko.evaluate(query, args.input, args.pa_k1, args.pa_k2)
+            res_pa = pachinko.interpret(tmp, args.input, args.pages, args.classes, args.methods,
+                                        args.determination, args.pa_k1, args.pa_k2)
+            evaluation.save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
 
 
 def validate(args):
@@ -90,14 +67,14 @@ def validate(args):
 
     if 'lda' in args.validate:
         results_lda = data.read_query_results('{}lda\\'.format(queries_path))
-        mrr_lda = MRR.calculate(goldsets, results_lda)
+        mrr_lda = validation.calculate_mrr(goldsets, results_lda)
 
         print('LDA MRR: \t{}'.format(mrr_lda))
         result['lda'] = mrr_lda
 
     if 'pa' in args.validate:
         results_pa = data.read_query_results('{}pa\\'.format(queries_path))
-        mrr_pa = MRR.calculate(goldsets, results_pa)
+        mrr_pa = validation.calculate_mrr(goldsets, results_pa)
 
         print('PA MRR: \t{}'.format(mrr_pa))
         result['pa'] = mrr_pa
