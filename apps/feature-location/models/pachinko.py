@@ -70,7 +70,7 @@ def training(documents, features, path, topic_n_k1=20, topics_n_k2=20):
     while not success and retrys < max_retrys:
 
         mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
-        data_list, mdl, success = train.tomotopy(mdl, documents, features, path, file_prefix)
+        data_list, mdl, success = train.train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 

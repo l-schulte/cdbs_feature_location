@@ -49,7 +49,7 @@ def training(documents, features, path, topic_n=20):
 
     file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
-    data_list, mdl, _ = train.tomotopy(mdl, documents, features, path, file_prefix)
+    data_list, mdl, _ = train.train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 
