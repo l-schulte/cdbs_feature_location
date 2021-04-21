@@ -2,6 +2,7 @@ import argparse
 import os
 import progressbar
 import json
+from datetime import datetime
 import math
 from models import lda, pachinko
 from data import data, get_db_features
@@ -70,10 +71,10 @@ def train(args):
     result = []
 
     if 'lda' in args.train:
-        result.append(lda.train(documents, features, args.lda_k1))
+        result.append(lda.train(documents, features, args.input, args.lda_k1))
 
     if 'pa' in args.train:
-        result.append(pachinko.train(documents, features, args.pa_k1, args.pa_k2))
+        result.append(pachinko.train(documents, features, args.input, args.pa_k1, args.pa_k2))
 
     return result
 
@@ -154,14 +155,26 @@ def execute(args=None):
 
 def optimize_training():
 
-    dump_path = 'optimize_dump.json'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='directory with text files interpretet as input')
+    args = parser.parse_args()
+
+    dir_name = str('optimize_{}'.format(datetime.now().timestamp()).replace('.', ''))
+    if args.input:
+        dir_name = args.input
+
+    dump_path = '{}/optimize_dump.json'.format(dir_name)
+
     if os.path.isfile(dump_path):
         results = json.load(open(dump_path, 'r'))
     else:
         results = {}
 
+    os.mkdir(dir_name)
+
     args = type('', (), {})()
     args.train = 'pa'
+    args.input = dir_name
     args.eval = None
     args.validate = None
     args.base = 'class'
@@ -181,7 +194,7 @@ def optimize_training():
             res = execute(args)
             results[result_id] = {'k1': k1, 'k2': k2, 'result': res}
 
-            json.dump(results, open('optimize_dump.json', 'w'), indent=4)
+            json.dump(results, open(dump_path, 'w'), indent=4)
 
 
 if __name__ == "__main__":

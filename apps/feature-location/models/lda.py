@@ -10,10 +10,7 @@ FILE_NAME = 'lda'
 def interpret(results, path, top_n, classes, methods, determination, k1):
 
     result, log_ll = results
-    if k1:
-        df = pd.read_csv('{}/{}_{}.csv'.format(path, FILE_NAME, k1))
-    else:
-        df = pd.read_csv('{}/{}.csv'.format(path, FILE_NAME, k1))
+    df = pd.read_csv('{}/{}_{}.csv'.format(path, FILE_NAME, k1))
 
     if determination == 'ml':
         max_value = max(result)
@@ -35,10 +32,7 @@ def evaluate(text, path, k1):
 
     word_list = data.nltk_filter(text)
 
-    if k1:
-        mdl = tp.LDAModel().load('{}\\{}_{}.mdl'.format(path, FILE_NAME, k1))
-    else:
-        mdl = tp.LDAModel().load('{}\\{}.mdl'.format(path, FILE_NAME))
+    mdl = tp.LDAModel().load('{}\\{}_{}.mdl'.format(path, FILE_NAME, k1))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -52,9 +46,9 @@ def train(documents, features, path, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
 
-    file_prefix = '{}\\{}_{}'.format(path, FILE_NAME, topic_n)
+    file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
-    data_list, mdl, _ = tomotopy_train(mdl, documents, features, file_prefix)
+    data_list, mdl, _ = tomotopy_train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 
@@ -70,7 +64,7 @@ def train(documents, features, path, topic_n=20):
 
     # print(res)
 
-    json.dump(data_list, open(file_prefix + '.json', 'w'), indent=4)
-    mapping.to_csv(file_prefix + '.csv')
+    json.dump(data_list, open('{}/{}.json'.format(path, file_prefix), 'w'), indent=4)
+    mapping.to_csv('{}/{}.csv'.format(path, file_prefix))
 
     return {FILE_NAME: mdl.ll_per_word}

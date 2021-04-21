@@ -11,10 +11,7 @@ def interpret(results, path, top_n, classes, methods, determination, k1, k2):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
 
-    if k1 and k2:
-        df = pd.read_csv('{}/{}_{}_{}.csv'.format(path, FILE_NAME, k1, k2))
-    else:
-        df = pd.read_csv('{}/{}.csv'.format(path, FILE_NAME))
+    df = pd.read_csv('{}/{}_{}_{}.csv'.format(path, FILE_NAME, k1, k2))
 
     if determination == 'ml':
 
@@ -51,10 +48,7 @@ def evaluate(text, path, k1, k2):
     # print('\nevaluating <{}> for pa...'.format(text))
     # print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
 
-    if k1 and k2:
-        mdl = tp.PAModel().load('{}/{}_{}_{}.mdl'.format(path, FILE_NAME, k1, k2))
-    else:
-        mdl = tp.PAModel().load('{}/{}.mdl'.format(path, FILE_NAME))
+    mdl = tp.PAModel().load('{}/{}_{}_{}.mdl'.format(path, FILE_NAME, k1, k2))
 
     if word_list:
         doc = mdl.make_doc(word_list)
@@ -66,7 +60,7 @@ def evaluate(text, path, k1, k2):
 
 def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
 
-    file_prefix = '{}/{}_{}_{}'.format(path, FILE_NAME, topic_n_k1, topics_n_k2)
+    file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
 
     success = False
     retrys = 0
@@ -75,7 +69,7 @@ def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
     while not success and retrys < max_retrys:
 
         mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
-        data_list, mdl, success = tomotopy_train(mdl, documents, features, file_prefix)
+        data_list, mdl, success = tomotopy_train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 
@@ -97,7 +91,7 @@ def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
 
     # print(res)
 
-    json.dump(data_list, open(file_prefix + '.json', 'w'), indent=4)
-    mapping.to_csv(file_prefix + '.csv')
+    json.dump(data_list, open('{}/{}.json'.format(path, file_prefix), 'w'), indent=4)
+    mapping.to_csv('{}/{}.csv'.format(path, file_prefix))
 
     return {FILE_NAME: mdl.ll_per_word}
