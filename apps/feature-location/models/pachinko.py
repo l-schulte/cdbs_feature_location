@@ -1,5 +1,5 @@
 from models.models import get_json
-from train import train
+from training import training
 import tomotopy as tp
 import pandas as pd
 import json
@@ -59,7 +59,7 @@ def evaluate(text, path, k1, k2):
     return 'error'
 
 
-def training(documents, features, path, topic_n_k1=20, topics_n_k2=20):
+def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
 
     file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
 
@@ -70,7 +70,7 @@ def training(documents, features, path, topic_n_k1=20, topics_n_k2=20):
     while not success and retrys < max_retrys:
 
         mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
-        data_list, mdl, success = train.train(mdl, documents, features, path, file_prefix)
+        data_list, mdl, success = training.train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 

@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from data import data
-from train import tomotopy
+from training import tomotopy
 
 
 def train(mdl, documents: List[data.Document], features, path, file_prefix='') \

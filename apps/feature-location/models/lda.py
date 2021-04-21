@@ -1,5 +1,5 @@
 from models.models import get_json
-from train import train
+from training import training
 import tomotopy as tp
 import pandas as pd
 import json
@@ -43,13 +43,13 @@ def evaluate(text, path, k1):
     return 'error'
 
 
-def training(documents, features, path, topic_n=20):
+def train(documents, features, path, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
 
     file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
-    data_list, mdl, _ = train.train(mdl, documents, features, path, file_prefix)
+    data_list, mdl, _ = training.train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 

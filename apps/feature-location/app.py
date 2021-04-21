@@ -29,10 +29,10 @@ def train(args):
     result = []
 
     if 'lda' in args.train:
-        result.append(lda.training(documents, features, args.input, args.lda_k1))
+        result.append(lda.train(documents, features, args.input, args.lda_k1))
 
     if 'pa' in args.train:
-        result.append(pachinko.training(documents, features, args.input, args.pa_k1, args.pa_k2))
+        result.append(pachinko.train(documents, features, args.input, args.pa_k1, args.pa_k2))
 
     return result
 
