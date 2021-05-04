@@ -4,10 +4,10 @@ import json
 
 from __init__ import db_commits, db_files, db_features, REPO
 from git import git
-from vcs import vcs
+from issues import issues
 
 
-def get_commits():
+def __get_commits():
     return list(db_commits.find())
 
 
@@ -96,7 +96,7 @@ def go():
         features = json.loads(f.read())
         f.close()
     else:
-        features = vcs.get_features(commits)
+        features = issues.get_features(commits)
         f = open(feature_cache, 'w')
         json.dump(features, f, indent=4)
         f.close()

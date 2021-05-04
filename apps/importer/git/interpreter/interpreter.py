@@ -1,7 +1,7 @@
 from copy import Error
 import re
 from datetime import datetime
-from vcs.jira.jira import get_feature_id
+from issues.issues import get_feature_id
 import progressbar
 
 from git.interpreter import LANGUAGE_REGX
@@ -39,10 +39,10 @@ def log(log):
 
         if re.search(r'^commit .+', line) and not line_buffer == []:
 
-            commit = __interpret_commit(line_buffer)
+            commit, feature_id = __interpret_commit(line_buffer)
             commits.append(commit)
 
-            changes.extend(__interpret_changes(line_buffer, commit['commit_id'], commit['comment']))
+            changes.extend(__interpret_changes(line_buffer, commit['commit_id'], commit['feature_id']))
 
             line_buffer = []
 
@@ -88,11 +88,12 @@ def __interpret_commit(lines):
         'author': author,
         'email': email,
         'date': date,
-        'comment': comment
+        'comment': comment,
+        'feature_id': get_feature_id(comment)
     }
 
 
-def __interpret_changes(lines, commit_id, comment):
+def __interpret_changes(lines, commit_id, feature_id):
     """Extract data from change lines using regex.
     """
 
@@ -116,7 +117,7 @@ def __interpret_changes(lines, commit_id, comment):
 
             changes.append({
                 'commit_id': commit_id,
-                'feature_id': get_feature_id(comment),
+                'feature_id': feature_id,
                 'path': path,
                 'old_path': old_path
             })
