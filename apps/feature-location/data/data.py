@@ -27,6 +27,19 @@ class Document:
                 '-': nltk_filter(diff['-'])
             })
 
+    def get_word_list(self, features, diff_type=['+']):
+        word_list = []
+
+        for feature_id in self.feature_ids:
+            if feature_id in features:
+                word_list.extend(features[feature_id]['words'])
+
+        for diff in self.diffs:
+            for t in diff_type:
+                word_list.extend(diff[t])
+
+        return word_list
+
 
 def get_documents(type) -> List[Document]:
 

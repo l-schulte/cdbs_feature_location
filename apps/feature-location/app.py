@@ -7,49 +7,8 @@ import math
 from models import tp_lda, tp_pachinko
 from data import data, get_db_features
 from validation import mean_reciprocal_rank as MRR
-
-
-def evaluate(args):
-
-    queries = []
-    filenames = []
-
-    if args.input:
-        path = '{}\\queries\\'.format(args.input)
-        filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-
-        for filename in filenames:
-            f = open('{}{}'.format(path, filename), 'r')
-            queries.append(f.read())
-            f.close()
-
-    elif args.query:
-        filenames.append('x')
-        queries.append(args.query)
-
-    def save_or_print(path, file, res):
-        if not os.path.exists(path):
-            os.mkdir(path)
-        if args.input:
-            f = open('{}/{}'.format(path, file), 'w')
-            f.write(res)
-            f.close()
-        else:
-            print(res)
-
-    for filename, query in progressbar.progressbar(zip(filenames, queries)):
-
-        if 'lda' in args.eval:
-            tmp = lda.evaluate(query, args.input, args.lda_k1)
-            res_lda = lda.interpret(tmp, args.input, args.pages, args.classes,
-                                    args.methods, args.determination, args.lda_k1)
-            save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
-
-        if 'pa' in args.eval:
-            tmp = pachinko.evaluate(query, args.input, args.pa_k1, args.pa_k2)
-            res_pa = pachinko.interpret(tmp, args.input, args.pages, args.classes, args.methods,
-                                        args.determination, args.pa_k1, args.pa_k2)
-            save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
+from evaluation import evaluation
+from trainint import training
 
 
 def train(args):
@@ -69,6 +28,8 @@ def train(args):
     print('skipped {} entries'.format(len(all_features) - len(features)))
 
     result = []
+
+    max_retrys = 3
 
     if 'lda' in args.train:
         retrys = 0
