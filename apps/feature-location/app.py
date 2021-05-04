@@ -4,7 +4,7 @@ import progressbar
 import json
 from datetime import datetime
 import math
-from models import lda, pachinko
+from models import tp_lda, tp_pachinko
 from data import data, get_db_features
 from validation import mean_reciprocal_rank as MRR
 
@@ -71,12 +71,51 @@ def train(args):
     result = []
 
     if 'lda' in args.train:
-        result.append(lda.train(documents, features, args.input, args.lda_k1))
+        retrys = 0
+        success = False
+        while not success and retrys < max_retrys:
+            mdl, file_prefix = tp_lda.create_model(args.lda_k1)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix)
+            retrys += 1
+
+        res = tp_lda.save_model(mdl, args.lda_k1, data_list, args.input, file_prefix)
+        result.append(res)
 
     if 'pa' in args.train:
-        result.append(pachinko.train(documents, features, args.input, args.pa_k1, args.pa_k2))
+        retrys = 0
+        success = False
+        while not success and retrys < max_retrys:
+            mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix)
+            retrys += 1
+
+        res = tp_pachinko.save_model(mdl, args.pa_k1, args.pa_k2, data_list, args.input, file_prefix)
+        result.append(res)
 
     return result
+
+
+def evaluate(args):
+
+    queries, filenames = evaluation.get_queries_and_filenames(args.input, args.query)
+
+    for filename, query in progressbar.progressbar(zip(filenames, queries)):
+
+        if 'lda' in args.eval:
+            modelname = 'lda_{}.mdl'.format(args.lda_k1)
+            mdl = tp_lda.load_model(args.input, modelname)
+            tmp = evaluation.evaluate(mdl, query)
+            res_lda = tp_lda.interpret_evaluation_results(tmp, args.input, args.pages, args.classes,
+                                                          args.methods, args.determination, args.lda_k1)
+            evaluation.save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
+
+        if 'pa' in args.eval:
+            modelname = 'pa_{}_{}.mdl'.format(args.lda_k1, args.lda_k2)
+            mdl = tp_pachinko.load_model(args.input, modelname)
+            tmp = evaluation.evaluate(mdl, query)
+            res_pa = tp_pachinko.interpret_evaluation_results(tmp, args.input, args.pages, args.classes, args.methods,
+                                                              args.determination, args.pa_k1, args.pa_k2)
+            evaluation.save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
 
 
 def validate(args):
