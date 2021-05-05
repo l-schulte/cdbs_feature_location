@@ -8,7 +8,7 @@ from models import tp_lda, tp_pachinko
 from data import data, get_db_features
 from validation import mean_reciprocal_rank as MRR
 from evaluation import evaluation
-from trainint import training
+from training import training
 
 
 def train(args):
@@ -68,15 +68,15 @@ def evaluate(args):
             tmp = evaluation.evaluate(mdl, query)
             res_lda = tp_lda.interpret_evaluation_results(tmp, args.input, args.pages, args.classes,
                                                           args.methods, args.determination, args.lda_k1)
-            evaluation.save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
+            evaluation.save_or_print(args, '{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
 
         if 'pa' in args.eval:
-            modelname = 'pa_{}_{}.mdl'.format(args.lda_k1, args.lda_k2)
+            modelname = 'pa_{}_{}.mdl'.format(args.pa_k1, args.pa_k2)
             mdl = tp_pachinko.load_model(args.input, modelname)
             tmp = evaluation.evaluate(mdl, query)
             res_pa = tp_pachinko.interpret_evaluation_results(tmp, args.input, args.pages, args.classes, args.methods,
                                                               args.determination, args.pa_k1, args.pa_k2)
-            evaluation.save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
+            evaluation.save_or_print(args, '{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
 
 
 def validate(args):

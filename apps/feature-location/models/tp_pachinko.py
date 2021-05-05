@@ -1,13 +1,17 @@
-from models.models import get_json, tomotopy_train
+from models.models import get_json
+from training import training
 import tomotopy as tp
 import pandas as pd
 import json
-from data import data
 
 FILE_NAME = 'pa'
 
 
-def interpret(results, path, top_n, classes, methods, determination, k1, k2):
+def load_model(input, model_name):
+    return tp.PAModel().load('{}{}'.format(input, model_name))
+
+
+def interpret_evaluation_results(results, path, top_n, classes, methods, determination, k1, k2):
 
     (super_topics_prob, sub_topics_prob), log_ll = results
 
@@ -42,22 +46,6 @@ def interpret(results, path, top_n, classes, methods, determination, k1, k2):
     return get_json(sorted_df, log_ll, top_n, classes, methods)
 
 
-def evaluate(text, path, k1, k2):
-
-    word_list = data.nltk_filter(text)
-    # print('\nevaluating <{}> for pa...'.format(text))
-    # print('\nword list contains {} words <{}>'.format(len(word_list), ' '.join(word_list)))
-
-    mdl = tp.PAModel().load('{}/{}_{}_{}.mdl'.format(path, FILE_NAME, k1, k2))
-
-    if word_list:
-        doc = mdl.make_doc(word_list)
-
-        return mdl.infer(doc)
-
-    return 'error'
-
-
 def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
 
     file_prefix = '{}_{}_{}'.format(FILE_NAME, topic_n_k1, topics_n_k2)
@@ -69,7 +57,7 @@ def train(documents, features, path, topic_n_k1=20, topics_n_k2=20):
     while not success and retrys < max_retrys:
 
         mdl = tp.PAModel(k1=topic_n_k1, k2=topics_n_k2, rm_top=20)
-        data_list, mdl, success = tomotopy_train(mdl, documents, features, path, file_prefix)
+        data_list, mdl, success = training.train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 

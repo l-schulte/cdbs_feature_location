@@ -21,6 +21,8 @@ def get_queries_and_filenames(input_path=None, query=None):
         filenames.append('x')
         queries.append(query)
 
+    return queries, filenames
+
 
 def evaluate(mdl, text: str):
     word_list = data.nltk_filter(text)

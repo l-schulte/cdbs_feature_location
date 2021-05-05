@@ -1,13 +1,17 @@
-from models.models import get_json, tomotopy_train
+from models.models import get_json
+from training import training
 import tomotopy as tp
 import pandas as pd
 import json
-from data import data
 
 FILE_NAME = 'lda'
 
 
-def interpret(results, path, top_n, classes, methods, determination, k1):
+def load_model(input, model_name):
+    return tp.LDAModel().load('{}{}'.format(input, model_name))
+
+
+def interpret_evaluation_results(results, path, top_n, classes, methods, determination, k1):
 
     result, log_ll = results
     df = pd.read_csv('{}/{}_{}.csv'.format(path, FILE_NAME, k1))
@@ -28,27 +32,13 @@ def interpret(results, path, top_n, classes, methods, determination, k1):
     return get_json(sorted_df, log_ll, top_n, classes, methods)
 
 
-def evaluate(text, path, k1):
-
-    word_list = data.nltk_filter(text)
-
-    mdl = tp.LDAModel().load('{}\\{}_{}.mdl'.format(path, FILE_NAME, k1))
-
-    if word_list:
-        doc = mdl.make_doc(word_list)
-
-        return mdl.infer(doc)
-
-    return 'error'
-
-
 def train(documents, features, path, topic_n=20):
 
     mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
 
     file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
 
-    data_list, mdl, _ = tomotopy_train(mdl, documents, features, path, file_prefix)
+    data_list, mdl, _ = training.train(mdl, documents, features, path, file_prefix)
 
     for row in data_list:
 
