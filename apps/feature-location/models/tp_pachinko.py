@@ -7,7 +7,7 @@ FILE_NAME = 'pa'
 
 
 def create_model(k1, k2):
-    return tp.LDAModel(k1=k1, k2=k2), 'pa_{}_{}'.format(k1, k2)
+    return tp.PAModel(k1=k1, k2=k2, rm_top=20), 'pa_{}_{}'.format(k1, k2)
 
 
 def load_model(input, model_name):
