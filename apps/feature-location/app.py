@@ -121,8 +121,6 @@ def execute(args=None):
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
         parser.add_argument('-q', '--query', help='evaluate text query, will be ignored if input dir is chosen')
         parser.add_argument('-i', '--input', help='directory with text files interpretet as input')
-        parser.add_argument('-m', '--methods', action='store_true', help='list methods')
-        parser.add_argument('-c', '--classes', action='store_true', help='list classes')
         parser.add_argument('-p', '--pages', help='number of documents', default=1000, type=int)
         parser.add_argument('-d', '--determ', choices=['ml', 'dist'],
                             help='method of determination which documents are simmilar', default='dist')
