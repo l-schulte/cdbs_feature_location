@@ -1,7 +1,7 @@
 import json
 
 
-def get_page(df, top_n, classes, methods):
+def get_page(df, top_n):
     res = []
     for cnt, path in enumerate(df.path[0:top_n], 1):
 
@@ -15,7 +15,7 @@ def get_page(df, top_n, classes, methods):
     return '\n'.join(res)
 
 
-def get_json(df, log_ll, top_n, classes, methods):
+def get_json(df, log_ll, top_n):
 
     res = {'log_ll': log_ll, 'res': []}
 

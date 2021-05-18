@@ -8,7 +8,7 @@ def get_rank(goldset, documents):
     return 0
 
 
-def calculate(goldsets, results):
+def calculate(goldsets, results) -> int:
 
     # nested k-fold cross vaidation
 

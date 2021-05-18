@@ -24,10 +24,11 @@ class Document:
         for diff in diffs:
             self.diffs.append({
                 '+': nltk_filter(diff['+']),
-                '-': nltk_filter(diff['-'])
+                '-': nltk_filter(diff['-']),
+                '=': nltk_filter(diff['='])
             })
 
-    def get_word_list(self, features, diff_type=['+']):
+    def get_word_list(self, features, diff_type=['+', '=']):
         word_list = []
 
         for feature_id in self.feature_ids:

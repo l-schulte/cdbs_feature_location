@@ -6,12 +6,12 @@ from datetime import datetime
 import math
 from models import tp_lda, tp_pachinko
 from data import data, get_db_features
-from validation import mean_reciprocal_rank as MRR
+from validation import validation
 from evaluation import evaluation
 from training import training
 
 
-def train(args):
+def __train(args):
 
     documents = data.get_documents(args.base)
 
@@ -56,7 +56,7 @@ def train(args):
     return result
 
 
-def evaluate(args):
+def __evaluate(args):
 
     queries, filenames = evaluation.get_queries_and_filenames(args.input, args.query)
 
@@ -66,20 +66,19 @@ def evaluate(args):
             modelname = 'lda_{}.mdl'.format(args.lda_k1)
             mdl = tp_lda.load_model(args.input, modelname)
             tmp = evaluation.evaluate(mdl, query)
-            res_lda = tp_lda.interpret_evaluation_results(tmp, args.input, args.pages, args.classes,
-                                                          args.methods, args.determination, args.lda_k1)
+            res_lda = tp_lda.interpret_evaluation_results(tmp, args.input, args.pages, args.determ, args.lda_k1)
             evaluation.save_or_print(args, '{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
 
         if 'pa' in args.eval:
             modelname = 'pa_{}_{}.mdl'.format(args.pa_k1, args.pa_k2)
             mdl = tp_pachinko.load_model(args.input, modelname)
             tmp = evaluation.evaluate(mdl, query)
-            res_pa = tp_pachinko.interpret_evaluation_results(tmp, args.input, args.pages, args.classes, args.methods,
-                                                              args.determination, args.pa_k1, args.pa_k2)
+            res_pa = tp_pachinko.interpret_evaluation_results(
+                tmp, args.input, args.pages, args.determ, args.pa_k1, args.pa_k2)
             evaluation.save_or_print(args, '{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
 
 
-def validate(args):
+def __validate(args):
 
     goldsets_path = '{}\\goldsets\\class\\'.format(args.input)
     queries_path = '{}\\queries\\'.format(args.input)
@@ -90,14 +89,14 @@ def validate(args):
 
     if 'lda' in args.validate:
         results_lda = data.read_query_results('{}lda\\'.format(queries_path))
-        mrr_lda = MRR.calculate(goldsets, results_lda)
+        mrr_lda = validation.get_score(goldsets, results_lda)
 
         print('LDA MRR: \t{}'.format(mrr_lda))
         result['lda'] = mrr_lda
 
     if 'pa' in args.validate:
         results_pa = data.read_query_results('{}pa\\'.format(queries_path))
-        mrr_pa = MRR.calculate(goldsets, results_pa)
+        mrr_pa = validation.get_score(goldsets, results_pa)
 
         print('PA MRR: \t{}'.format(mrr_pa))
         result['pa'] = mrr_pa
@@ -125,14 +124,11 @@ def execute(args=None):
         parser.add_argument('-m', '--methods', action='store_true', help='list methods')
         parser.add_argument('-c', '--classes', action='store_true', help='list classes')
         parser.add_argument('-p', '--pages', help='number of documents', default=1000, type=int)
-        parser.add_argument('-d', '--determination', choices=['ml', 'dist'],
+        parser.add_argument('-d', '--determ', choices=['ml', 'dist'],
                             help='method of determination which documents are simmilar', default='dist')
 
         # - validate
         parser.add_argument('-v', '--validate', nargs='+', choices=['lda', 'pa'], help='validate cluster')
-
-        # - general
-        parser.add_argument('--json', action='store_true', help='returns output as JSON document')
 
         args = parser.parse_args()
 
@@ -140,15 +136,15 @@ def execute(args=None):
 
     if args.train:
         print('--- train ------')
-        result['train'] = train(args)
+        result['train'] = __train(args)
 
     if args.eval:
         print('--- evaluate ---')
-        result['evaluate'] = evaluate(args)
+        result['evaluate'] = __evaluate(args)
 
     if args.validate:
         print('--- validate ---')
-        result['validate'] = validate(args)
+        result['validate'] = __validate(args)
 
     return result
 
