@@ -20,6 +20,7 @@ def __join_json(j1, j2):
             j1[key]['cnt'] += j2[key]['cnt']
             j1[key]['+'] += j2[key]['+']
             j1[key]['-'] += j2[key]['-']
+            j1[key]['='] += j2[key]['=']
         else:
             j1[key] = j2[key]
 
@@ -39,7 +40,7 @@ def log(log):
 
         if re.search(r'^commit .+', line) and not line_buffer == []:
 
-            commit, feature_id = __interpret_commit(line_buffer)
+            commit = __interpret_commit(line_buffer)
             commits.append(commit)
 
             changes.extend(__interpret_changes(line_buffer, commit['commit_id'], commit['feature_id']))
@@ -236,7 +237,7 @@ def _interpret_file_chunk_diff(extension, lines, old_start, new_start):
 
 def __interpret_changed_methods(lines, re_method_name):
 
-    methods_changed = {'unknown': {'cnt': 0, '+': '', '-': ''}}
+    methods_changed = {'unknown': {'cnt': 0, '+': '', '-': '', '=': ''}}
     method_name = None
     method_indentation = None
 
@@ -254,11 +255,13 @@ def __interpret_changed_methods(lines, re_method_name):
             method_indentation = re_res_method_changed.group(2)
             method_name = re_res_method_changed.group(3)
 
-            methods_changed[method_name] = {'cnt': 0, '+': '', '-': ''}
+            methods_changed[method_name] = {'cnt': 0, '+': '', '-': '', '=': ''}
 
             if changed != ' ':
                 methods_changed[method_name]['cnt'] += 1
                 methods_changed[method_name][changed] += line
+            else:
+                methods_changed[method_name]['='] += line
 
             continue
 
@@ -269,6 +272,8 @@ def __interpret_changed_methods(lines, re_method_name):
                 methods_changed[method_name]['cnt'] += 1
                 methods_changed[method_name][change_inside.group(1)] += change_inside.group(3)
                 continue
+            else:
+                methods_changed[method_name]['='] += line
 
         re_res_unknown_changed = re.search(r'^(\+|\-| )(\t+| +)(.*)', line)
         if re_res_unknown_changed is not None and re_res_unknown_changed.group(1) != ' ':
@@ -279,13 +284,15 @@ def __interpret_changed_methods(lines, re_method_name):
             method_indentation = None
 
             continue
+        else:
+            methods_changed['unknown']['='] += line
 
     return methods_changed
 
 
 def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_close):
 
-    classes_changed = {'unknown': {'cnt': 0, '+': '', '-': ''}}
+    classes_changed = {'unknown': {'cnt': 0, '+': '', '-': '', '=': ''}}
     class_name = 'unknown'
     brackets_count = 0
 
@@ -301,10 +308,12 @@ def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_cl
             changed = re_res_class_name.group(1)
             class_name = re_res_class_name.group(3)
 
-            classes_changed[class_name] = {'cnt': 0, '+': '', '-': ''}
+            classes_changed[class_name] = {'cnt': 0, '+': '', '-': '', '=': ''}
             if changed != ' ':
                 classes_changed[class_name]['cnt'] += 1
                 classes_changed[class_name][changed] += line
+            else:
+                classes_changed[class_name]['='] += line
 
             brackets_count = line.count(brackets_open) - line.count(brackets_close)
 
@@ -316,5 +325,7 @@ def __interpret_changed_classes(lines, re_class_name, brackets_open, brackets_cl
             classes_changed[class_name]['cnt'] += 1
             classes_changed[class_name][change_inside.group(1)] += change_inside.group(2)
             continue
+        else:
+            classes_changed[class_name]['='] += line
 
     return classes_changed
