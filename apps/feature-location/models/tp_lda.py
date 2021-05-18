@@ -6,6 +6,10 @@ import json
 FILE_NAME = 'lda'
 
 
+def create_model(k):
+    return tp.LDAModel(k=k), 'lda_{}'.format(k)
+
+
 def load_model(input, model_name):
     return tp.LDAModel().load('{}{}'.format(input, model_name))
 
