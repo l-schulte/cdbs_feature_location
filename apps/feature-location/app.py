@@ -80,22 +80,22 @@ def __evaluate(args):
 
 def __validate(args):
 
-    goldsets_path = '{}\\goldsets\\class\\'.format(args.input)
-    queries_path = '{}\\queries\\'.format(args.input)
+    goldsets_path = '{}/goldsets/class/'.format(args.input)
+    queries_path = '{}/queries/'.format(args.input)
 
     goldsets = data.read_goldsets(goldsets_path)
 
     result = {}
 
     if 'lda' in args.validate:
-        results_lda = data.read_query_results('{}lda\\'.format(queries_path))
+        results_lda = data.read_query_results('{}lda/'.format(queries_path))
         mrr_lda = validation.get_score(goldsets, results_lda)
 
         print('LDA MRR: \t{}'.format(mrr_lda))
         result['lda'] = mrr_lda
 
     if 'pa' in args.validate:
-        results_pa = data.read_query_results('{}pa\\'.format(queries_path))
+        results_pa = data.read_query_results('{}pa/'.format(queries_path))
         mrr_pa = validation.get_score(goldsets, results_pa)
 
         print('PA MRR: \t{}'.format(mrr_pa))

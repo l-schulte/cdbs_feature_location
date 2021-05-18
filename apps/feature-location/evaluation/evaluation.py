@@ -9,7 +9,7 @@ def get_queries_and_filenames(input_path=None, query=None):
     filenames = []
 
     if input_path:
-        path = '{}\\queries\\'.format(input_path)
+        path = '{}/queries/'.format(input_path)
         filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 
         for filename in filenames:
