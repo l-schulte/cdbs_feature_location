@@ -192,5 +192,5 @@ def optimize_training():
 
 
 if __name__ == "__main__":
-    execute()
-    # optimize_training()
+    # execute()
+    optimize_training()
