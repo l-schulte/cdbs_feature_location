@@ -2,6 +2,7 @@ import argparse
 import os
 import progressbar
 import json
+import time
 from datetime import datetime
 import math
 from models import tp_lda, tp_pachinko
@@ -192,5 +193,18 @@ def optimize_training():
 
 
 if __name__ == "__main__":
-    # execute()
-    optimize_training()
+
+    def time_convert(sec):
+        mins = sec // 60
+        sec = sec % 60
+        hours = mins // 60
+        mins = mins % 60
+        print("Time Lapsed = {0}:{1}:{2}".format(int(hours), int(mins), sec))
+
+    start = time.time()
+
+    execute()
+    # optimize_training()
+
+    time_lapsed = time.time() - start
+    time_convert(time_lapsed)
