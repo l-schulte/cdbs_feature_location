@@ -88,19 +88,11 @@ def nltk_feature_filter(features: dict):
             continue
 
         feature = features[feature_id]
-        feature['words'] = nltk_filter(feature['description'])
+        feature['words'] = []
+        feature['words'].extend(nltk_filter(feature['description']))
+        feature['words'].extend(nltk_filter(feature['title']))
 
     return features
-
-
-def nltk_doc_filter(doc):
-
-    if not ('feature' in doc and 'description' in doc['feature'] and doc['feature']['description']):
-        return None
-
-    text = doc['feature']['description']
-
-    return nltk_filter(text)
 
 
 def nltk_filter(text: str):
