@@ -28,7 +28,7 @@ def train(mdl, documents: List[data.Document], features, path, file_prefix='') \
     if not os.path.exists('{}/tmp'.format(path)):
         os.mkdir('{}/tmp'.format(path))
 
-    iterations = 1000
+    iterations = 100
     steps = 10
     retrys = 0
     max_retrys = 2

@@ -16,6 +16,8 @@ def __train(args):
 
     documents = data.get_documents(args.base)
 
+    print('Documents: {}'.format(len(documents)))
+
     all_features = get_db_features().find_one()
     features = {}
     for feature_id in all_features:
@@ -193,6 +195,8 @@ def optimize_training():
 
 
 if __name__ == "__main__":
+
+    data.get_files()
 
     def time_convert(sec):
         mins = sec // 60
