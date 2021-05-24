@@ -22,7 +22,7 @@ for id, doc in results.items():
         k1 = doc['k1']
     if 'k2' in doc:
         k2 = doc['k2']
-    subprocess.run('python app.py -e {} -v {} -i {} --pa_k1 {} --pa_k2 {} --lda_k1 {} -c'.format(technique,
-                                                                                                 technique,
-                                                                                                 args.input,
-                                                                                                 k1, k2, k1))
+    subprocess.run('python app.py -e {} -v {} -i {} --pa_k1 {} --pa_k2 {} --lda_k1 {}'.format(technique,
+                                                                                              technique,
+                                                                                              args.input,
+                                                                                              k1, k2, k1))
