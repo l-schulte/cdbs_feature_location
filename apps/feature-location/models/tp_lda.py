@@ -7,7 +7,7 @@ FILE_NAME = 'lda'
 
 
 def create_model(k):
-    return tp.LDAModel(k=k, rm_top=20), 'lda_{}'.format(k)
+    return tp.LDAModel(k=k, rm_top=20, seed=42), 'lda_{}'.format(k)
 
 
 def load_model(input, model_name):
