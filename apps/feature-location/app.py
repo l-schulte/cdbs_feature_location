@@ -39,7 +39,8 @@ def __train(args):
         success = False
         while not success and retrys < max_retrys:
             mdl, file_prefix = tp_lda.create_model(args.lda_k1)
-            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
+                                                     args.iterations, args.burn_in)
             retrys += 1
 
         res = tp_lda.save_model(mdl, args.lda_k1, data_list, args.input, file_prefix)
@@ -50,7 +51,8 @@ def __train(args):
         success = False
         while not success and retrys < max_retrys:
             mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2)
-            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
+                                                     args.iterations, args.burn_in)
             retrys += 1
 
         res = tp_pachinko.save_model(mdl, args.pa_k1, args.pa_k2, data_list, args.input, file_prefix)
@@ -119,6 +121,8 @@ def execute(args=None):
         parser.add_argument('--pa_k2', help='number of subtopics for pa', default=20, type=int)
         parser.add_argument('-b', '--base', help='file or class based',
                             choices=['file', 'class'], default='class', type=str)
+        parser.add_argument('--iterations', help='number of training iterations', default=100, type=int)
+        parser.add_argument('--burn_in', help='burn in for training', default=10, type=int)
 
         # - eval
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
@@ -167,7 +171,7 @@ def optimize_training():
     else:
         results = {}
 
-    os.mkdir(dir_name)
+        os.mkdir(dir_name)
 
     args = type('', (), {})()
     args.train = 'pa'
@@ -176,9 +180,9 @@ def optimize_training():
     args.validate = None
     args.base = 'class'
 
-    for k1 in range(10, 400, 50):
+    for k1 in range(50, 401, 50):
         args.pa_k1 = k1
-        for k2 in range(10, 400, 50):
+        for k2 in range(50, 301, 50):
             args.pa_k2 = k2
 
             result_id = 'k1_{}_k2_{}'.format(k1, k2)
@@ -207,8 +211,8 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    execute()
-    # optimize_training()
+    # execute()
+    optimize_training()
 
     time_lapsed = time.time() - start
     time_convert(time_lapsed)
