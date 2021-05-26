@@ -4,11 +4,11 @@ from typing import List, Tuple
 from data import data
 
 
-def train(mdl, documents: List[data.Document], features, path, file_prefix='') \
+def train(mdl, documents: List[data.Document], features, path, file_prefix, iterations, burn_in) \
         -> Tuple[List[dict], object, bool]:
 
     data_list = []
-    mdl.burn_in = 10
+    mdl.burn_in = burn_in
 
     for document in documents:
 
@@ -28,7 +28,6 @@ def train(mdl, documents: List[data.Document], features, path, file_prefix='') \
     if not os.path.exists('{}/tmp'.format(path)):
         os.mkdir('{}/tmp'.format(path))
 
-    iterations = 100
     steps = 10
     retrys = 0
     max_retrys = 2

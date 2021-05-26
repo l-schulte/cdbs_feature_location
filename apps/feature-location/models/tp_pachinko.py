@@ -6,8 +6,9 @@ import json
 FILE_NAME = 'pa'
 
 
-def create_model(k1, k2):
-    return tp.PAModel(k1=k1, k2=k2, rm_top=20), 'pa_{}_{}'.format(k1, k2)
+def create_model(k1, k2, alpha, sub_alpha, eta):
+    return tp.PAModel(k1=k1, k2=k2, rm_top=20, alpha=alpha, subalpha=sub_alpha,
+                      eta=eta), 'pa_{}_{}'.format(k1, k2)
 
 
 def load_model(input, model_name):

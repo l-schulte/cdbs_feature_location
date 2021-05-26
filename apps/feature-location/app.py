@@ -14,6 +14,9 @@ from training import training
 
 def __train(args):
 
+    if not os.path.exists(args.input):
+        os.mkdir(args.input)
+
     documents = data.get_documents(args.base)
 
     print('Documents: {}'.format(len(documents)))
@@ -38,8 +41,9 @@ def __train(args):
         retrys = 0
         success = False
         while not success and retrys < max_retrys:
-            mdl, file_prefix = tp_lda.create_model(args.lda_k1)
-            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix)
+            mdl, file_prefix = tp_lda.create_model(args.lda_k1, args.alpha, args.eta)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
+                                                     args.iterations, args.burn_in)
             retrys += 1
 
         res = tp_lda.save_model(mdl, args.lda_k1, data_list, args.input, file_prefix)
@@ -49,8 +53,9 @@ def __train(args):
         retrys = 0
         success = False
         while not success and retrys < max_retrys:
-            mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2)
-            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix)
+            mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2, args.alpha, args.sub_alpha, args.eta)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
+                                                     args.iterations, args.burn_in)
             retrys += 1
 
         res = tp_pachinko.save_model(mdl, args.pa_k1, args.pa_k2, data_list, args.input, file_prefix)
@@ -119,6 +124,11 @@ def execute(args=None):
         parser.add_argument('--pa_k2', help='number of subtopics for pa', default=20, type=int)
         parser.add_argument('-b', '--base', help='file or class based',
                             choices=['file', 'class'], default='class', type=str)
+        parser.add_argument('--iterations', help='number of training iterations', default=100, type=int)
+        parser.add_argument('--burn_in', help='burn in for training', default=10, type=int)
+        parser.add_argument('--alpha', help='alpha parameter for training', default=0.1, type=float)
+        parser.add_argument('--sub_alpha', help='sub alpha parameter for training of PA', default=0.1, type=float)
+        parser.add_argument('--eta', help='eta parameter for training', default=0.1, type=float)
 
         # - eval
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
@@ -167,7 +177,7 @@ def optimize_training():
     else:
         results = {}
 
-    os.mkdir(dir_name)
+        os.mkdir(dir_name)
 
     args = type('', (), {})()
     args.train = 'pa'
@@ -176,9 +186,9 @@ def optimize_training():
     args.validate = None
     args.base = 'class'
 
-    for k1 in range(10, 400, 50):
+    for k1 in range(50, 401, 50):
         args.pa_k1 = k1
-        for k2 in range(10, 400, 50):
+        for k2 in range(50, 301, 50):
             args.pa_k2 = k2
 
             result_id = 'k1_{}_k2_{}'.format(k1, k2)
