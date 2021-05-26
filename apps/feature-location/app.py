@@ -14,6 +14,9 @@ from training import training
 
 def __train(args):
 
+    if not os.path.exists(args.input):
+        os.mkdir(args.input)
+
     documents = data.get_documents(args.base)
 
     print('Documents: {}'.format(len(documents)))
@@ -38,7 +41,7 @@ def __train(args):
         retrys = 0
         success = False
         while not success and retrys < max_retrys:
-            mdl, file_prefix = tp_lda.create_model(args.lda_k1)
+            mdl, file_prefix = tp_lda.create_model(args.lda_k1, args.alpha, args.eta)
             data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
                                                      args.iterations, args.burn_in)
             retrys += 1
@@ -50,7 +53,7 @@ def __train(args):
         retrys = 0
         success = False
         while not success and retrys < max_retrys:
-            mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2)
+            mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2, args.alpha, args.sub_alpha, args.eta)
             data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
                                                      args.iterations, args.burn_in)
             retrys += 1
@@ -123,6 +126,9 @@ def execute(args=None):
                             choices=['file', 'class'], default='class', type=str)
         parser.add_argument('--iterations', help='number of training iterations', default=100, type=int)
         parser.add_argument('--burn_in', help='burn in for training', default=10, type=int)
+        parser.add_argument('--alpha', help='alpha parameter for training', default=0.1, type=int)
+        parser.add_argument('--sub_alpha', help='sub alpha parameter for training of PA', default=0.1, type=int)
+        parser.add_argument('--eta', help='eta parameter for training', default=0.1, type=int)
 
         # - eval
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
@@ -211,8 +217,8 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    # execute()
-    optimize_training()
+    execute()
+    # optimize_training()
 
     time_lapsed = time.time() - start
     time_convert(time_lapsed)
