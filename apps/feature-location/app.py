@@ -126,9 +126,9 @@ def execute(args=None):
                             choices=['file', 'class'], default='class', type=str)
         parser.add_argument('--iterations', help='number of training iterations', default=100, type=int)
         parser.add_argument('--burn_in', help='burn in for training', default=10, type=int)
-        parser.add_argument('--alpha', help='alpha parameter for training', default=0.1, type=int)
-        parser.add_argument('--sub_alpha', help='sub alpha parameter for training of PA', default=0.1, type=int)
-        parser.add_argument('--eta', help='eta parameter for training', default=0.1, type=int)
+        parser.add_argument('--alpha', help='alpha parameter for training', default=0.1, type=float)
+        parser.add_argument('--sub_alpha', help='sub alpha parameter for training of PA', default=0.1, type=float)
+        parser.add_argument('--eta', help='eta parameter for training', default=0.1, type=float)
 
         # - eval
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
