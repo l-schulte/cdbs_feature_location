@@ -2,6 +2,6 @@ numpy
 nltk
 tomotopy
 pandas
-progressbar
+progressbar2
 pymongo
 dnspython
