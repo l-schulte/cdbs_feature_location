@@ -1,13 +1,20 @@
-from models.models import get_json, tomotopy_train
+from models.models import get_json
 import tomotopy as tp
 import pandas as pd
 import json
-from data import data
 
 FILE_NAME = 'lda'
 
 
-def interpret(results, path, top_n, classes, methods, determination, k1):
+def create_model(k, alpha, eta):
+    return tp.LDAModel(k=k, rm_top=20, alpha=alpha, eta=eta), 'lda_{}'.format(k)
+
+
+def load_model(input, model_name):
+    return tp.LDAModel().load('{}{}'.format(input, model_name))
+
+
+def interpret_evaluation_results(results, path, top_n, determination, k1):
 
     result, log_ll = results
     df = pd.read_csv('{}/{}_{}.csv'.format(path, FILE_NAME, k1))
@@ -25,44 +32,22 @@ def interpret(results, path, top_n, classes, methods, determination, k1):
 
     sorted_df = df.sort_values(by='most_likely', ascending=False)
 
-    return get_json(sorted_df, log_ll, top_n, classes, methods)
+    return get_json(sorted_df, log_ll, top_n)
 
 
-def evaluate(text, path, k1):
-
-    word_list = data.nltk_filter(text)
-
-    mdl = tp.LDAModel().load('{}\\{}_{}.mdl'.format(path, FILE_NAME, k1))
-
-    if word_list:
-        doc = mdl.make_doc(word_list)
-
-        return mdl.infer(doc)
-
-    return 'error'
-
-
-def train(documents, features, path, topic_n=20):
-
-    mdl = tp.LDAModel(k=topic_n, seed=123, rm_top=20)
-
-    file_prefix = '{}_{}'.format(FILE_NAME, topic_n)
-
-    data_list, mdl, _ = tomotopy_train(mdl, documents, features, path, file_prefix)
+def save_model(mdl, k1, data_list, path, file_prefix):
 
     for row in data_list:
 
         doc = mdl.docs[row['model_index']]
-        topics = doc.get_topics(top_n=topic_n)
+        topics = doc.get_topics(top_n=k1)
         topics = sorted(topics, key=lambda item: item[0])
 
-        for t in range(topic_n):
+        for t in range(k1):
             row['topic_{}'.format(t)] = topics[t][1]
 
     columns = list(data_list[0].keys())
     mapping = pd.DataFrame(data_list, columns=columns)
-
-    # print(res)
 
     json.dump(data_list, open('{}/{}.json'.format(path, file_prefix), 'w'), indent=4)
     mapping.to_csv('{}/{}.csv'.format(path, file_prefix))

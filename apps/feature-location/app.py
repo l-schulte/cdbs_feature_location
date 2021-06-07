@@ -2,59 +2,24 @@ import argparse
 import os
 import progressbar
 import json
+import time
 from datetime import datetime
 import math
-from models import lda, pachinko
+from models import tp_lda, tp_pachinko
 from data import data, get_db_features
-from validation import mean_reciprocal_rank as MRR
+from validation import validation
+from evaluation import evaluation
+from training import training
 
 
-def evaluate(args):
+def __train(args):
 
-    queries = []
-    filenames = []
-
-    if args.input:
-        path = '{}\\queries\\'.format(args.input)
-        filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-
-        for filename in filenames:
-            f = open('{}{}'.format(path, filename), 'r')
-            queries.append(f.read())
-            f.close()
-
-    elif args.query:
-        filenames.append('x')
-        queries.append(args.query)
-
-    def save_or_print(path, file, res):
-        if not os.path.exists(path):
-            os.mkdir(path)
-        if args.input:
-            f = open('{}/{}'.format(path, file), 'w')
-            f.write(res)
-            f.close()
-        else:
-            print(res)
-
-    for filename, query in progressbar.progressbar(zip(filenames, queries)):
-
-        if 'lda' in args.eval:
-            tmp = lda.evaluate(query, args.input, args.lda_k1)
-            res_lda = lda.interpret(tmp, args.input, args.pages, args.classes,
-                                    args.methods, args.determination, args.lda_k1)
-            save_or_print('{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
-
-        if 'pa' in args.eval:
-            tmp = pachinko.evaluate(query, args.input, args.pa_k1, args.pa_k2)
-            res_pa = pachinko.interpret(tmp, args.input, args.pages, args.classes, args.methods,
-                                        args.determination, args.pa_k1, args.pa_k2)
-            save_or_print('{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
-
-
-def train(args):
+    if not os.path.exists(args.input):
+        os.mkdir(args.input)
 
     documents = data.get_documents(args.base)
+
+    print('Documents: {}'.format(len(documents)))
 
     all_features = get_db_features().find_one()
     features = {}
@@ -70,34 +35,76 @@ def train(args):
 
     result = []
 
+    max_retrys = 3
+
     if 'lda' in args.train:
-        result.append(lda.train(documents, features, args.input, args.lda_k1))
+        retrys = 0
+        success = False
+        while not success and retrys < max_retrys:
+            mdl, file_prefix = tp_lda.create_model(args.lda_k1, args.alpha, args.eta)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
+                                                     args.iterations, args.burn_in)
+            retrys += 1
+
+        res = tp_lda.save_model(mdl, args.lda_k1, data_list, args.input, file_prefix)
+        result.append(res)
 
     if 'pa' in args.train:
-        result.append(pachinko.train(documents, features, args.input, args.pa_k1, args.pa_k2))
+        retrys = 0
+        success = False
+        while not success and retrys < max_retrys:
+            mdl, file_prefix = tp_pachinko.create_model(args.pa_k1, args.pa_k2, args.alpha, args.sub_alpha, args.eta)
+            data_list, mdl, success = training.train(mdl, documents, features, args.input, file_prefix,
+                                                     args.iterations, args.burn_in)
+            retrys += 1
+
+        res = tp_pachinko.save_model(mdl, args.pa_k1, args.pa_k2, data_list, args.input, file_prefix)
+        result.append(res)
 
     return result
 
 
-def validate(args):
+def __evaluate(args):
 
-    goldsets_path = '{}\\goldsets\\class\\'.format(args.input)
-    queries_path = '{}\\queries\\'.format(args.input)
+    queries, filenames = evaluation.get_queries_and_filenames(args.input, args.query)
+
+    for filename, query in progressbar.progressbar(zip(filenames, queries)):
+
+        if 'lda' in args.eval:
+            modelname = 'lda_{}.mdl'.format(args.lda_k1)
+            mdl = tp_lda.load_model(args.input, modelname)
+            tmp = evaluation.evaluate(mdl, query)
+            res_lda = tp_lda.interpret_evaluation_results(tmp, args.input, args.pages, args.determ, args.lda_k1)
+            evaluation.save_or_print(args, '{}queries/{}'.format(args.input, 'lda'), filename, res_lda)
+
+        if 'pa' in args.eval:
+            modelname = 'pa_{}_{}.mdl'.format(args.pa_k1, args.pa_k2)
+            mdl = tp_pachinko.load_model(args.input, modelname)
+            tmp = evaluation.evaluate(mdl, query)
+            res_pa = tp_pachinko.interpret_evaluation_results(
+                tmp, args.input, args.pages, args.determ, args.pa_k1, args.pa_k2)
+            evaluation.save_or_print(args, '{}queries/{}'.format(args.input, 'pa'), filename, res_pa)
+
+
+def __validate(args):
+
+    goldsets_path = '{}/goldsets/class/'.format(args.input)
+    queries_path = '{}/queries/'.format(args.input)
 
     goldsets = data.read_goldsets(goldsets_path)
 
     result = {}
 
     if 'lda' in args.validate:
-        results_lda = data.read_query_results('{}lda\\'.format(queries_path))
-        mrr_lda = MRR.calculate(goldsets, results_lda)
+        results_lda = data.read_query_results('{}lda/'.format(queries_path))
+        mrr_lda = validation.get_score(goldsets, results_lda)
 
         print('LDA MRR: \t{}'.format(mrr_lda))
         result['lda'] = mrr_lda
 
     if 'pa' in args.validate:
-        results_pa = data.read_query_results('{}pa\\'.format(queries_path))
-        mrr_pa = MRR.calculate(goldsets, results_pa)
+        results_pa = data.read_query_results('{}pa/'.format(queries_path))
+        mrr_pa = validation.get_score(goldsets, results_pa)
 
         print('PA MRR: \t{}'.format(mrr_pa))
         result['pa'] = mrr_pa
@@ -117,22 +124,22 @@ def execute(args=None):
         parser.add_argument('--pa_k2', help='number of subtopics for pa', default=20, type=int)
         parser.add_argument('-b', '--base', help='file or class based',
                             choices=['file', 'class'], default='class', type=str)
+        parser.add_argument('--iterations', help='number of training iterations', default=100, type=int)
+        parser.add_argument('--burn_in', help='burn in for training', default=10, type=int)
+        parser.add_argument('--alpha', help='alpha parameter for training', default=0.1, type=float)
+        parser.add_argument('--sub_alpha', help='sub alpha parameter for training of PA', default=0.1, type=float)
+        parser.add_argument('--eta', help='eta parameter for training', default=0.1, type=float)
 
         # - eval
         parser.add_argument('-e', '--eval', nargs='+', choices=['lda', 'pa'], help='evaluate cluster')
         parser.add_argument('-q', '--query', help='evaluate text query, will be ignored if input dir is chosen')
         parser.add_argument('-i', '--input', help='directory with text files interpretet as input')
-        parser.add_argument('-m', '--methods', action='store_true', help='list methods')
-        parser.add_argument('-c', '--classes', action='store_true', help='list classes')
         parser.add_argument('-p', '--pages', help='number of documents', default=1000, type=int)
-        parser.add_argument('-d', '--determination', choices=['ml', 'dist'],
+        parser.add_argument('-d', '--determ', choices=['ml', 'dist'],
                             help='method of determination which documents are simmilar', default='dist')
 
         # - validate
         parser.add_argument('-v', '--validate', nargs='+', choices=['lda', 'pa'], help='validate cluster')
-
-        # - general
-        parser.add_argument('--json', action='store_true', help='returns output as JSON document')
 
         args = parser.parse_args()
 
@@ -140,15 +147,15 @@ def execute(args=None):
 
     if args.train:
         print('--- train ------')
-        result['train'] = train(args)
+        result['train'] = __train(args)
 
     if args.eval:
         print('--- evaluate ---')
-        result['evaluate'] = evaluate(args)
+        result['evaluate'] = __evaluate(args)
 
     if args.validate:
         print('--- validate ---')
-        result['validate'] = validate(args)
+        result['validate'] = __validate(args)
 
     return result
 
@@ -170,7 +177,7 @@ def optimize_training():
     else:
         results = {}
 
-    os.mkdir(dir_name)
+        os.mkdir(dir_name)
 
     args = type('', (), {})()
     args.train = 'pa'
@@ -179,9 +186,9 @@ def optimize_training():
     args.validate = None
     args.base = 'class'
 
-    for k1 in range(10, 400, 50):
+    for k1 in range(50, 401, 50):
         args.pa_k1 = k1
-        for k2 in range(10, 400, 50):
+        for k2 in range(50, 301, 50):
             args.pa_k2 = k2
 
             result_id = 'k1_{}_k2_{}'.format(k1, k2)
@@ -198,5 +205,20 @@ def optimize_training():
 
 
 if __name__ == "__main__":
+
+    data.get_files()
+
+    def time_convert(sec):
+        mins = sec // 60
+        sec = sec % 60
+        hours = mins // 60
+        mins = mins % 60
+        print("Time Lapsed = {0}:{1}:{2}".format(int(hours), int(mins), sec))
+
+    start = time.time()
+
     execute()
     # optimize_training()
+
+    time_lapsed = time.time() - start
+    time_convert(time_lapsed)

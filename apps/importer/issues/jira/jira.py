@@ -55,6 +55,7 @@ def get_features(commits):
         if 'fields' in data and 'description' in data['fields'] and 'issuetype' in data['fields']:
             features[feature_id] = {
                 'description': data['fields']['description'],
+                'title': data['fields']['summary'],
                 'type': data['fields']['issuetype']
             }
         else:

@@ -2,6 +2,7 @@ from typing import List
 from data import get_db_files
 import json
 import os
+from bson import json_util
 from nltk.tokenize import word_tokenize
 
 from data import stopwords
@@ -24,21 +25,51 @@ class Document:
         for diff in diffs:
             self.diffs.append({
                 '+': nltk_filter(diff['+']),
-                '-': nltk_filter(diff['-'])
+                '-': nltk_filter(diff['-']),
+                '=': nltk_filter(diff['='])
             })
+
+    def get_word_list(self, features, diff_type=['+', '=']):
+        word_list = []
+
+        for feature_id in self.feature_ids:
+            if feature_id in features:
+                word_list.extend(features[feature_id]['words'])
+
+        for diff in self.diffs:
+            for t in diff_type:
+                word_list.extend(diff[t])
+
+        return word_list
+
+
+def get_files():
+    files = {}
+    file_cache = 'files_cache.json'
+    if os.path.isfile(file_cache):
+        f = open(file_cache, 'r')
+        files = json_util.loads(f.read())
+        f.close()
+    else:
+        files = list(get_db_files().find())
+        f = open(file_cache, 'w')
+        json.dump(files, f, indent=4, default=json_util.default)
+        f.close()
+
+    return files
 
 
 def get_documents(type) -> List[Document]:
 
     documents = []
     if type == 'file':
-        for file in get_db_files().find():
+        for file in get_files():
             name = file['path'].split('/')[-1].split('.')[0]
             documents.append(Document(str(file['_id']), name, file['path'], file['feature_ids'], None))
         return documents
 
     if type == 'class':
-        for file in get_db_files().find():
+        for file in get_files():
             classes = {}
             diffs = {}
             if 'changes' in file:
@@ -74,19 +105,11 @@ def nltk_feature_filter(features: dict):
             continue
 
         feature = features[feature_id]
-        feature['words'] = nltk_filter(feature['description'])
+        feature['words'] = []
+        feature['words'].extend(nltk_filter(feature['description']))
+        feature['words'].extend(nltk_filter(feature['title']))
 
     return features
-
-
-def nltk_doc_filter(doc):
-
-    if not ('feature' in doc and 'description' in doc['feature'] and doc['feature']['description']):
-        return None
-
-    text = doc['feature']['description']
-
-    return nltk_filter(text)
 
 
 def nltk_filter(text: str):
